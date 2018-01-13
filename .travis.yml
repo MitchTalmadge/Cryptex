@@ -32,6 +32,8 @@ jobs:
       before_script:
         - wget -qO- https://cli-assets.heroku.com/install-ubuntu.sh | sh
         - heroku plugins:install heroku-cli-deploy
+        - heroku buildpacks:clear --app mitchtalmadge-cryptex
+        - heroku buildpacks:set heroku/jvm --app mitchtalmadge-cryptex
       script: skip
       before_deploy:
         - cd server # Clean up Server
