@@ -92,6 +92,12 @@ public class TelegramService {
                     && relayedMessageMap.get(message.getChatId()).contains(((TLMessage) message).getId()))
                 return;
 
+            // TODO: check image
+
+            // Ignore empty messages
+            if (((TLMessage) message).getMessage().isEmpty())
+                return;
+
             logService.logInfo(getClass(), "New Message Received: " + ((TLMessage) message).getMessage());
 
             // Send message to discord
