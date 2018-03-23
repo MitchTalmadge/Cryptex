@@ -1,12 +1,20 @@
 package com.mitchtalmadge.cryptex.service.telegram;
 
+import com.mitchtalmadge.cryptex.service.DiscordService;
 import com.mitchtalmadge.cryptex.service.LogService;
+import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.entities.TextChannel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.bot.kernel.TelegramBot;
+import org.telegram.api.message.TLAbsMessage;
+import org.telegram.api.message.TLMessage;
 
 import javax.annotation.PostConstruct;
-import java.util.concurrent.Future;
+import java.awt.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This service signs into and maintains connection with Telegram.
@@ -29,14 +37,30 @@ public class TelegramService {
      */
     private static final String PHONE_NUMBER = System.getenv("TELEGRAM_PHONE_NUMBER");
 
+    /**
+     * The ID of the Discord channel to relay calls to.
+     */
+    private static final String DISCORD_CHANNEL_ID = System.getenv("TELEGRAM_DISCORD_CHANNEL_ID");
+
+    /**
+     * IDs of messages that have already been relayed, to prevent duplication.
+     * Maps chat IDs to message IDs.
+     */
+    private final Map<Integer, Set<Integer>> relayedMessageMap = new HashMap<>();
+
     private LogService logService;
 
     private TelegramAuthService telegramAuthService;
 
+    private DiscordService discordService;
+
     @Autowired
-    public TelegramService(LogService logService, TelegramAuthService telegramAuthService) {
+    public TelegramService(LogService logService,
+                           TelegramAuthService telegramAuthService,
+                           DiscordService discordService) {
         this.logService = logService;
         this.telegramAuthService = telegramAuthService;
+        this.discordService = discordService;
     }
 
     @PostConstruct
@@ -51,7 +75,41 @@ public class TelegramService {
         }
 
         // Sign into Telegram.
-        telegramAuthService.signIn(apiID, API_HASH, PHONE_NUMBER);
+        telegramAuthService.signIn(this, apiID, API_HASH, PHONE_NUMBER);
+    }
+
+    /**
+     * Called when a message is received from Telegram.
+     * Relays the message to Discord if applicable.
+     *
+     * @param message The message received.
+     */
+    public void messageReceived(TLAbsMessage message) {
+        if (message instanceof TLMessage) {
+
+            // Prevention of duplicate message relays
+            if (relayedMessageMap.containsKey(message.getChatId())
+                    && relayedMessageMap.get(message.getChatId()).contains(((TLMessage) message).getId()))
+                return;
+
+            logService.logInfo(getClass(), "New Message Received: " + ((TLMessage) message).getMessage());
+
+            // Send message to discord
+            TextChannel discordChannel = discordService.getJDA().getTextChannelById(DISCORD_CHANNEL_ID);
+            if (discordChannel != null) {
+                // Build rich embed
+                EmbedBuilder builder = new EmbedBuilder();
+                builder.setDescription(((TLMessage) message).getMessage());
+                builder.setColor(Color.CYAN);
+
+                // Queue message
+                discordChannel.sendMessage(builder.build()).queue();
+
+                // Record message ID
+                relayedMessageMap.putIfAbsent(message.getChatId(), new HashSet<>());
+                relayedMessageMap.get(message.getChatId()).add(((TLMessage) message).getId());
+            }
+        }
     }
 
 }

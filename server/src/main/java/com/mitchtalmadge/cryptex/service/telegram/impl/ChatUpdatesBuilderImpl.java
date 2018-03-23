@@ -1,5 +1,6 @@
 package com.mitchtalmadge.cryptex.service.telegram.impl;
 
+import com.mitchtalmadge.cryptex.service.telegram.TelegramService;
 import org.telegram.bot.ChatUpdatesBuilder;
 import org.telegram.bot.handlers.UpdatesHandlerBase;
 import org.telegram.bot.kernel.IKernelComm;
@@ -14,6 +15,12 @@ public class ChatUpdatesBuilderImpl implements ChatUpdatesBuilder {
     private IKernelComm iKernelComm;
     private IDifferenceParametersService iDifferenceParametersService;
     private DatabaseManager databaseManager = new DatabaseManagerImpl();
+
+    private TelegramService telegramService;
+
+    public ChatUpdatesBuilderImpl(TelegramService telegramService) {
+        this.telegramService = telegramService;
+    }
 
     @Override
     public void setKernelComm(IKernelComm iKernelComm) {
@@ -32,6 +39,6 @@ public class ChatUpdatesBuilderImpl implements ChatUpdatesBuilder {
 
     @Override
     public UpdatesHandlerBase build() {
-        return new UpdatesHandlerImpl(iKernelComm, iDifferenceParametersService, databaseManager);
+        return new UpdatesHandlerImpl(telegramService, iKernelComm, iDifferenceParametersService, databaseManager);
     }
 }

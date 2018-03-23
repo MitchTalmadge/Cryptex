@@ -28,7 +28,7 @@ public class TelegramAuthService implements MailListener {
     /**
      * The name of the auth file in the running directory.
      */
-    private static final String AUTH_FILE_NAME = "telegram.auth2";
+    private static final String AUTH_FILE_NAME = "telegram.auth";
 
     /**
      * The TelegramBot instance.
@@ -145,10 +145,10 @@ public class TelegramAuthService implements MailListener {
      * @param phoneNumber The phone number of the user to sign into.
      */
     @Async
-    public void signIn(int apiID, String apiHash, String phoneNumber) {
+    public void signIn(TelegramService telegramService, int apiID, String apiHash, String phoneNumber) {
 
         // Create bot
-        telegramBot = new TelegramBot(new BotConfigImpl(phoneNumber), new ChatUpdatesBuilderImpl(), apiID, apiHash);
+        telegramBot = new TelegramBot(new BotConfigImpl(phoneNumber), new ChatUpdatesBuilderImpl(telegramService), apiID, apiHash);
         telegramBot.getConfig().setAuthfile(AUTH_FILE_NAME);
 
         try {
