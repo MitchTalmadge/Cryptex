@@ -78,11 +78,25 @@
             <version>20170516</version>
         </dependency>
 
+        <!-- Telegram -->
+        <dependency>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegramapi</artifactId>
+            <version>66.2</version>
+        </dependency>
+
         <!-- Twitter -->
         <dependency>
             <groupId>org.twitter4j</groupId>
             <artifactId>twitter4j-core</artifactId>
             <version>4.0.6</version>
+        </dependency>
+
+        <!-- Mail -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.1</version>
         </dependency>
 
         <!-- Raygun Exception Handler -->

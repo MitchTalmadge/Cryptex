@@ -26,12 +26,6 @@ public class DiscordService {
      */
     private JDA jda;
 
-    /**
-     * The first guild connected to, which should be the only guild used throughout the application.
-     * (This bot is designed to work with only one guild.)
-     */
-    private Guild guild;
-
     @Autowired
     public DiscordService(LogService logService) {
         this.logService = logService;
@@ -43,8 +37,6 @@ public class DiscordService {
             jda = new JDABuilder(AccountType.BOT)
                     .setToken(discordToken)
                     .buildBlocking();
-
-            this.guild = jda.getGuilds().get(0);
         } catch (LoginException e) {
             logService.logException(getClass(), e, "Could not sign in to Discord");
             throw e;
@@ -64,13 +56,6 @@ public class DiscordService {
      */
     public JDA getJDA() {
         return jda;
-    }
-
-    /**
-     * @return The Guild that this bot is assigned to.
-     */
-    public Guild getGuild() {
-        return guild;
     }
 
 }

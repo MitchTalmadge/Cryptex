@@ -8,4 +8,4 @@
             |___/|_|
 
 Copyright Mitch Talmadge (https://mitchtalmadge.com)
-Apache-2.0 | https://github.com/MitchTalmadge/Cryptex | https://mitchtalmadge.com/
+Apache-2.0 | https://github.com/MitchTalmadge/Cryptex | https://cryptex.mitchtalmadge.com/
