@@ -2,12 +2,14 @@ package com.mitchtalmadge.cryptex.service.telegram;
 
 import com.mitchtalmadge.cryptex.service.DiscordService;
 import com.mitchtalmadge.cryptex.service.LogService;
+import com.mitchtalmadge.cryptex.service.SpringProfileService;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.TextChannel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.message.TLMessage;
+import org.telegram.bot.services.BotLogger;
 
 import javax.annotation.PostConstruct;
 import java.awt.*;
@@ -15,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 /**
  * This service signs into and maintains connection with Telegram.
@@ -50,15 +53,18 @@ public class TelegramService {
 
     private LogService logService;
 
+    private SpringProfileService springProfileService;
     private TelegramAuthService telegramAuthService;
 
     private DiscordService discordService;
 
     @Autowired
     public TelegramService(LogService logService,
+                           SpringProfileService springProfileService,
                            TelegramAuthService telegramAuthService,
                            DiscordService discordService) {
         this.logService = logService;
+        this.springProfileService = springProfileService;
         this.telegramAuthService = telegramAuthService;
         this.discordService = discordService;
     }
@@ -73,6 +79,10 @@ public class TelegramService {
             logService.logError(getClass(), "Cannot parse API_ID as integer: " + API_ID);
             return;
         }
+
+        // Set Logging Level
+        if (springProfileService.isProfileActive(SpringProfileService.Profile.DEV))
+            BotLogger.setLevel(Level.ALL);
 
         // Sign into Telegram.
         telegramAuthService.signIn(this, apiID, API_HASH, PHONE_NUMBER);
@@ -100,12 +110,15 @@ public class TelegramService {
 
             logService.logInfo(getClass(), "New Message Received: " + ((TLMessage) message).getMessage());
 
+            // TODO: split message by length (2k chars)
+
             // Send message to discord
             TextChannel discordChannel = discordService.getJDA().getTextChannelById(DISCORD_CHANNEL_ID);
             if (discordChannel != null) {
                 // Build rich embed
                 EmbedBuilder builder = new EmbedBuilder();
-                builder.setDescription(((TLMessage) message).getMessage());
+                builder.setTitle("Call Made:");
+                builder.setDescription("@everyone " + ((TLMessage) message).getMessage());
                 builder.setColor(Color.CYAN);
 
                 // Queue message

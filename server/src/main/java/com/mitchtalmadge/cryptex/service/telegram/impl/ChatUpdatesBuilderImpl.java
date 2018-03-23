@@ -14,7 +14,7 @@ public class ChatUpdatesBuilderImpl implements ChatUpdatesBuilder {
 
     private IKernelComm iKernelComm;
     private IDifferenceParametersService iDifferenceParametersService;
-    private DatabaseManager databaseManager = new DatabaseManagerImpl();
+    private DatabaseManagerImpl databaseManager = new DatabaseManagerImpl();
 
     private TelegramService telegramService;
 
@@ -39,6 +39,6 @@ public class ChatUpdatesBuilderImpl implements ChatUpdatesBuilder {
 
     @Override
     public UpdatesHandlerBase build() {
-        return new UpdatesHandlerImpl(telegramService, iKernelComm, iDifferenceParametersService, databaseManager);
+        return new UpdatesHandlerImpl(telegramService, iKernelComm, iDifferenceParametersService, databaseManager, new UsersHandlerImpl(databaseManager), new ChatsHandlerImpl(databaseManager));
     }
 }
