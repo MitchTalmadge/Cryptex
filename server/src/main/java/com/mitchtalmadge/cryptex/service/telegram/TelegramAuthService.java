@@ -15,8 +15,11 @@ import org.telegram.bot.structure.LoginStatus;
 import javax.annotation.PostConstruct;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.internet.MimeMultipart;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -70,14 +73,14 @@ public class TelegramAuthService implements MailListener {
             // Read contents to array.
             byte[] contents = new byte[inputStream.available()];
             int readBytes = inputStream.read(contents);
-            if(readBytes != contents.length) {
+            if (readBytes != contents.length) {
                 logService.logError(getClass(), "Failed to read entire auth file.");
                 return;
             }
 
             // Store contents in database.
             List<FileEntity> fileEntities = fileEntityRepository.findByName(AUTH_FILE_NAME);
-            if(fileEntities.size() > 0) {
+            if (fileEntities.size() > 0) {
                 // Update existing record.
                 FileEntity fileEntity = fileEntities.get(0);
                 fileEntity.setContents(contents);
@@ -175,22 +178,37 @@ public class TelegramAuthService implements MailListener {
                 try {
                     // Determine if email is from TextNow.
                     if (message.getSubject().startsWith("TextNow")) {
-                        // Determine if this text was from Telegram.
-                        int codeIndex = message.getContent().toString().indexOf("Telegram code");
-                        if (codeIndex != -1) {
-                            // Extract code; "Telegram code" is 14 characters, code itself is another 5.
-                            String code = message.getContent().toString().substring(codeIndex + 14, codeIndex + 14 + 5);
 
-                            logService.logInfo(getClass(), "Found Telegram code: " + code);
+                        // Extract body
+                        List<String> bodyParts = new ArrayList<>();
+                        Object contents = message.getContent();
+                        if (contents instanceof String) {
+                            bodyParts.add((String) contents);
+                        } else if (contents instanceof Multipart) {
+                            for (int i = 0; i < ((Multipart) contents).getCount(); i++) {
+                                bodyParts.add(((Multipart) contents).getBodyPart(i).toString());
+                            }
+                        }
 
-                            // Apply code.
-                            telegramBot.getKernelAuth().setAuthCode(code);
-                            loginStatus = LoginStatus.ALREADYLOGGED;
+                        // Examine each body part
+                        for (String bodyPart : bodyParts) {
+                            // Determine if this text was from Telegram.
+                            int codeIndex = bodyPart.indexOf("Telegram code");
+                            if (codeIndex != -1) {
+                                // Extract code; "Telegram code" is 14 characters, code itself is another 5.
+                                String code = bodyPart.substring(codeIndex + 14, codeIndex + 14 + 5);
 
-                            // Start bot.
-                            telegramBot.startBot();
-                            writeAuthToDatabase();
-                            return;
+                                logService.logInfo(getClass(), "Found Telegram code: " + code);
+
+                                // Apply code.
+                                telegramBot.getKernelAuth().setAuthCode(code);
+                                loginStatus = LoginStatus.ALREADYLOGGED;
+
+                                // Start bot.
+                                telegramBot.startBot();
+                                writeAuthToDatabase();
+                                return;
+                            }
                         }
                     }
                 } catch (MessagingException | IOException e) {
