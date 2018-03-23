@@ -1,6 +1,4 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {NavigationEnd, Router} from "@angular/router";
-import {Subscription} from "rxjs/Subscription";
 
 @Component({
     selector: 'c-header',
