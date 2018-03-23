@@ -31,12 +31,12 @@ public class TelegramService {
 
     private LogService logService;
 
-    private TelegramSignInService telegramSignInService;
+    private TelegramAuthService telegramAuthService;
 
     @Autowired
-    public TelegramService(LogService logService, TelegramSignInService telegramSignInService) {
+    public TelegramService(LogService logService, TelegramAuthService telegramAuthService) {
         this.logService = logService;
-        this.telegramSignInService = telegramSignInService;
+        this.telegramAuthService = telegramAuthService;
     }
 
     @PostConstruct
@@ -51,7 +51,7 @@ public class TelegramService {
         }
 
         // Sign into Telegram.
-        Future<TelegramBot> telegramBotFuture = telegramSignInService.signIn(apiID, API_HASH, PHONE_NUMBER);
+        telegramAuthService.signIn(apiID, API_HASH, PHONE_NUMBER);
     }
 
 }

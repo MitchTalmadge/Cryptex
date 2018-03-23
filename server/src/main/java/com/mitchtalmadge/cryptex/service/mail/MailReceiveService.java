@@ -10,6 +10,7 @@ import javax.mail.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.Set;
 
 @Service
 public class MailReceiveService {
@@ -29,10 +30,12 @@ public class MailReceiveService {
      */
     private static final String IMAP_PASSWORD = System.getenv("IMAP_PASSWORD");
     private LogService logService;
+    private Set<MailListener> mailListeners;
 
     @Autowired
-    public MailReceiveService(LogService logService) {
+    public MailReceiveService(LogService logService, Set<MailListener> mailListeners) {
         this.logService = logService;
+        this.mailListeners = mailListeners;
     }
 
     /**
@@ -88,6 +91,13 @@ public class MailReceiveService {
                 logService.logInfo(getClass(), "New Message Received.");
                 logService.logInfo(getClass(), "Subject: " + message.getSubject());
                 logService.logInfo(getClass(), "From: " + message.getFrom()[0].toString());
+            }
+
+            // Notify Mail Listeners
+            if (unreadMessages.length > 0) {
+                for (MailListener listener : mailListeners) {
+                    listener.readMail(unreadMessages);
+                }
             }
 
             // Mark all as read
