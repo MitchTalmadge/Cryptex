@@ -1,5 +1,6 @@
 package com.mitchtalmadge.cryptex.service.telegram.impl;
 
+import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramContext;
 import org.telegram.bot.structure.BotConfig;
 
 /**
@@ -7,21 +8,18 @@ import org.telegram.bot.structure.BotConfig;
  */
 public class BotConfigImpl extends BotConfig {
 
-    /**
-     * The phone number of the client.
-     */
-    private String phoneNumber;
+    private TelegramContext telegramContext;
 
     /**
-     * @param phoneNumber The phone number of the client.
+     * @param telegramContext A TelegramContext containing a phone number.
      */
-    public BotConfigImpl(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public BotConfigImpl(TelegramContext telegramContext) {
+        this.telegramContext = telegramContext;
     }
 
     @Override
     public String getPhoneNumber() {
-        return phoneNumber;
+        return telegramContext.getPhoneNumber();
     }
 
     @Override

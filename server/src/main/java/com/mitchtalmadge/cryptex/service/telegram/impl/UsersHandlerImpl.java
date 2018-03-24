@@ -1,5 +1,6 @@
 package com.mitchtalmadge.cryptex.service.telegram.impl;
 
+import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramContext;
 import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramUser;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.api.user.TLUser;
@@ -12,10 +13,10 @@ import java.util.List;
  */
 public class UsersHandlerImpl implements IUsersHandler {
 
-    private DatabaseManagerImpl databaseManager;
+    private TelegramContext telegramContext;
 
-    public UsersHandlerImpl(DatabaseManagerImpl databaseManager) {
-        this.databaseManager = databaseManager;
+    UsersHandlerImpl(TelegramContext telegramContext) {
+        this.telegramContext = telegramContext;
     }
 
     @Override
@@ -23,7 +24,7 @@ public class UsersHandlerImpl implements IUsersHandler {
         // Store all users in database.
         list.forEach(user -> {
             if (user instanceof TLUser) {
-                databaseManager.storeUser(new TelegramUser((TLUser) user));
+                telegramContext.getDatabaseManager().storeUser(new TelegramUser((TLUser) user));
             }
         });
     }

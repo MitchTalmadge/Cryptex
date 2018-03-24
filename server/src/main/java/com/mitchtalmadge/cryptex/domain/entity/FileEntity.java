@@ -6,6 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Allows for storage of files in the database.
@@ -28,7 +30,7 @@ public class FileEntity {
     /**
      * The binary contents of the file.
      */
-    @Type(type="org.hibernate.type.BinaryType")
+    @Type(type = "org.hibernate.type.BinaryType")
     private byte[] contents;
 
     /**
@@ -66,5 +68,21 @@ public class FileEntity {
 
     public void setContents(byte[] contents) {
         this.contents = contents;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FileEntity that = (FileEntity) o;
+        return Objects.equals(name, that.name) &&
+                Arrays.equals(contents, that.contents);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(name);
+        result = 31 * result + Arrays.hashCode(contents);
+        return result;
     }
 }

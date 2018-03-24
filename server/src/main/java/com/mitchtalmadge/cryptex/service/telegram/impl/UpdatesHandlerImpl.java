@@ -1,14 +1,11 @@
 package com.mitchtalmadge.cryptex.service.telegram.impl;
 
+import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramContext;
 import com.mitchtalmadge.cryptex.service.telegram.TelegramService;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.message.TLAbsMessage;
-import org.telegram.api.update.*;
-import org.telegram.api.update.encrypted.TLUpdateEncryptedMessagesRead;
-import org.telegram.api.update.encrypted.TLUpdateNewEncryptedMessage;
-import org.telegram.api.updates.TLUpdateShortChatMessage;
-import org.telegram.api.updates.TLUpdateShortMessage;
-import org.telegram.api.updates.TLUpdateShortSentMessage;
+import org.telegram.api.update.TLUpdateChannelNewMessage;
+import org.telegram.api.update.TLUpdateNewMessage;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.bot.handlers.DefaultUpdatesHandler;
 import org.telegram.bot.handlers.interfaces.IChatsHandler;
@@ -24,20 +21,23 @@ import java.util.List;
  */
 public class UpdatesHandlerImpl extends DefaultUpdatesHandler {
 
-    private TelegramService telegramService;
-    private IUsersHandler usersHandler;
+    private TelegramContext telegramContext;
+
+    private final IUsersHandler usersHandler;
     private final IChatsHandler chatsHandler;
 
-    UpdatesHandlerImpl(TelegramService telegramService,
-                       IKernelComm kernelComm,
-                       IDifferenceParametersService differenceParametersService,
-                       DatabaseManager databaseManager,
-                       IUsersHandler usersHandler,
-                       IChatsHandler chatsHandler) {
-        super(kernelComm, differenceParametersService, databaseManager);
-        this.telegramService = telegramService;
-        this.usersHandler = usersHandler;
-        this.chatsHandler = chatsHandler;
+    /**
+     * Creates an Updates Handler.
+     * @param telegramContext A Telegram Context containing a Database Manager.
+     * @param kernelComm The Kernel Comm instance.
+     * @param differenceParametersService The Difference Parameters Service instance.
+     */
+    UpdatesHandlerImpl(TelegramContext telegramContext, IKernelComm kernelComm, IDifferenceParametersService differenceParametersService) {
+        super(kernelComm, differenceParametersService, telegramContext.getDatabaseManager());
+        this.telegramContext = telegramContext;
+
+        usersHandler = new UsersHandlerImpl(telegramContext);
+        chatsHandler = new ChatsHandlerImpl(telegramContext);
     }
 
     @Override
@@ -52,17 +52,17 @@ public class UpdatesHandlerImpl extends DefaultUpdatesHandler {
 
     @Override
     protected void onTLAbsMessageCustom(TLAbsMessage message) {
-        telegramService.messageReceived(message);
+        telegramContext.getTelegramService().messageReceived(telegramContext, message);
     }
 
     @Override
     protected void onTLUpdateChannelNewMessageCustom(TLUpdateChannelNewMessage update) {
-        telegramService.messageReceived(update.getMessage());
+        telegramContext.getTelegramService().messageReceived(telegramContext, update.getMessage());
     }
 
     @Override
     protected void onTLUpdateNewMessageCustom(TLUpdateNewMessage update) {
-        telegramService.messageReceived(update.getMessage());
+        telegramContext.getTelegramService().messageReceived(telegramContext, update.getMessage());
     }
 
 }

@@ -1,5 +1,6 @@
 package com.mitchtalmadge.cryptex.service.telegram.impl;
 
+import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramChat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.telegram.bot.kernel.database.DatabaseManager;
@@ -43,7 +44,7 @@ public class DatabaseManagerImpl implements DatabaseManager {
     }
 
     /**
-     * Stores a user for later retrieveal.
+     * Stores a user for later retrieval.
      * @param user The user to store.
      */
     public void storeUser(IUser user) {

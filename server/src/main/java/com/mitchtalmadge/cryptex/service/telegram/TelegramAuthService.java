@@ -1,5 +1,6 @@
 package com.mitchtalmadge.cryptex.service.telegram;
 
+import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramContext;
 import com.mitchtalmadge.cryptex.domain.entity.FileEntity;
 import com.mitchtalmadge.cryptex.service.LogService;
 import com.mitchtalmadge.cryptex.service.entity.FileEntityRepository;
@@ -33,10 +34,7 @@ public class TelegramAuthService implements MailListener {
      */
     private static final String AUTH_FILE_NAME = "telegram.auth";
 
-    /**
-     * The TelegramBot instance.
-     */
-    private TelegramBot telegramBot;
+    private TelegramContext telegramContext;
 
     /**
      * The current login status.
@@ -143,24 +141,22 @@ public class TelegramAuthService implements MailListener {
     /**
      * Attempts to sign into Telegram.
      *
-     * @param apiID       The api_id.
-     * @param apiHash     The api_hash.
-     * @param phoneNumber The phone number of the user to sign into.
+     * @param telegramContext The Telegram Context to sign-in with.
      */
     @Async
-    public void signIn(TelegramService telegramService, int apiID, String apiHash, String phoneNumber) {
+    public void signIn(TelegramContext telegramContext) {
 
-        // Create bot
-        telegramBot = new TelegramBot(new BotConfigImpl(phoneNumber), new ChatUpdatesBuilderImpl(telegramService), apiID, apiHash);
-        telegramBot.getConfig().setAuthfile(AUTH_FILE_NAME);
+        this.telegramContext = telegramContext;
+
+        telegramContext.getBot().getConfig().setAuthfile(AUTH_FILE_NAME);
 
         try {
             // Initialize bot and check status.
-            loginStatus = telegramBot.init();
+            loginStatus = telegramContext.getBot().init();
 
             // Check if we can start the bot right away.
             if (loginStatus == LoginStatus.ALREADYLOGGED) {
-                telegramBot.startBot();
+                telegramContext.getBot().startBot();
                 writeAuthToDatabase();
             }
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -171,7 +167,7 @@ public class TelegramAuthService implements MailListener {
     @Override
     public void readMail(Message[] unreadMessages) {
         // Check if we must search for a code.
-        if (telegramBot != null && loginStatus == LoginStatus.CODESENT) {
+        if (telegramContext.getBot() != null && loginStatus == LoginStatus.CODESENT) {
 
             // Search for code
             for (Message message : unreadMessages) {
@@ -201,11 +197,11 @@ public class TelegramAuthService implements MailListener {
                                 logService.logInfo(getClass(), "Found Telegram code: " + code);
 
                                 // Apply code.
-                                telegramBot.getKernelAuth().setAuthCode(code);
+                                telegramContext.getBot().getKernelAuth().setAuthCode(code);
                                 loginStatus = LoginStatus.ALREADYLOGGED;
 
                                 // Start bot.
-                                telegramBot.startBot();
+                                telegramContext.getBot().startBot();
                                 writeAuthToDatabase();
                                 return;
                             }

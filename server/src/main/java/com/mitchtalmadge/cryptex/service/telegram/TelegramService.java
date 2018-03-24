@@ -1,22 +1,31 @@
 package com.mitchtalmadge.cryptex.service.telegram;
 
+import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramContext;
+import com.mitchtalmadge.cryptex.domain.entity.telegram.TelegramChatHistoryEntity;
 import com.mitchtalmadge.cryptex.service.DiscordService;
 import com.mitchtalmadge.cryptex.service.LogService;
 import com.mitchtalmadge.cryptex.service.SpringProfileService;
+import com.mitchtalmadge.cryptex.service.entity.telegram.TelegramChatHistoryEntityRepository;
+import com.mitchtalmadge.cryptex.service.telegram.impl.BotConfigImpl;
+import com.mitchtalmadge.cryptex.service.telegram.impl.ChatUpdatesBuilderImpl;
+import com.mitchtalmadge.cryptex.util.StringUtils;
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.TextChannel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.telegram.api.engine.RpcException;
 import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.message.TLMessage;
+import org.telegram.bot.kernel.TelegramBot;
 import org.telegram.bot.services.BotLogger;
+import org.telegram.bot.structure.Chat;
+import org.telegram.bot.structure.IUser;
 
 import javax.annotation.PostConstruct;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 
 /**
@@ -45,28 +54,25 @@ public class TelegramService {
      */
     private static final String DISCORD_CHANNEL_ID = System.getenv("TELEGRAM_DISCORD_CHANNEL_ID");
 
-    /**
-     * IDs of messages that have already been relayed, to prevent duplication.
-     * Maps chat IDs to message IDs.
-     */
-    private final Map<Integer, Set<Integer>> relayedMessageMap = new HashMap<>();
-
     private LogService logService;
 
     private SpringProfileService springProfileService;
     private TelegramAuthService telegramAuthService;
 
     private DiscordService discordService;
+    private TelegramChatHistoryEntityRepository telegramChatHistoryEntityRepository;
 
     @Autowired
     public TelegramService(LogService logService,
                            SpringProfileService springProfileService,
                            TelegramAuthService telegramAuthService,
-                           DiscordService discordService) {
+                           DiscordService discordService,
+                           TelegramChatHistoryEntityRepository telegramChatHistoryEntityRepository) {
         this.logService = logService;
         this.springProfileService = springProfileService;
         this.telegramAuthService = telegramAuthService;
         this.discordService = discordService;
+        this.telegramChatHistoryEntityRepository = telegramChatHistoryEntityRepository;
     }
 
     @PostConstruct
@@ -84,23 +90,52 @@ public class TelegramService {
         if (springProfileService.isProfileActive(SpringProfileService.Profile.DEV))
             BotLogger.setLevel(Level.ALL);
 
+        // Create Telegram Context
+        TelegramContext telegramContext = new TelegramContext();
+        telegramContext.setTelegramService(this);
+        telegramContext.setPhoneNumber(PHONE_NUMBER);
+        telegramContext.setApiId(apiID);
+        telegramContext.setApiHash(API_HASH);
+
+        // Create Telegram Bot
+        telegramContext.setBot(
+                new TelegramBot(
+                        new BotConfigImpl(telegramContext),
+                        new ChatUpdatesBuilderImpl(telegramContext),
+                        telegramContext.getApiId(),
+                        telegramContext.getApiHash()
+                )
+        );
+
         // Sign into Telegram.
-        telegramAuthService.signIn(this, apiID, API_HASH, PHONE_NUMBER);
+        telegramAuthService.signIn(telegramContext);
     }
 
     /**
      * Called when a message is received from Telegram.
      * Relays the message to Discord if applicable.
      *
-     * @param message The message received.
+     * @param telegramContext The Telegram Context associated with the message.
+     * @param message         The message received.
      */
-    public void messageReceived(TLAbsMessage message) {
+    public void messageReceived(TelegramContext telegramContext, TLAbsMessage message) {
         if (message instanceof TLMessage) {
 
-            // Prevention of duplicate message relays
-            if (relayedMessageMap.containsKey(message.getChatId())
-                    && relayedMessageMap.get(message.getChatId()).contains(((TLMessage) message).getId()))
-                return;
+            // Check chat history to see if we have seen this message.
+            TelegramChatHistoryEntity history = telegramChatHistoryEntityRepository.findFirstByPhoneNumberAndChatId(telegramContext.getPhoneNumber(), message.getChatId());
+            if (history == null) {
+                // Create a new chat history entity.
+                history = new TelegramChatHistoryEntity(telegramContext.getPhoneNumber(), message.getChatId(), ((TLMessage) message).getId());
+                telegramChatHistoryEntityRepository.save(history);
+            } else {
+                // Skip this message if we have already seen it.
+                if (history.getLastMessageId() >= ((TLMessage) message).getId())
+                    return;
+
+                // Update last seen message id.
+                history.setLastMessageId(((TLMessage) message).getId());
+                telegramChatHistoryEntityRepository.save(history);
+            }
 
             // TODO: check image
 
@@ -110,23 +145,30 @@ public class TelegramService {
 
             logService.logInfo(getClass(), "New Message Received: " + ((TLMessage) message).getMessage());
 
-            // TODO: split message by length (2k chars)
-
             // Send message to discord
             TextChannel discordChannel = discordService.getJDA().getTextChannelById(DISCORD_CHANNEL_ID);
             if (discordChannel != null) {
-                // Build rich embed
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.setTitle("Call Made:");
-                builder.setDescription("@everyone " + ((TLMessage) message).getMessage());
-                builder.setColor(Color.CYAN);
 
-                // Queue message
-                discordChannel.sendMessage(builder.build()).queue();
+                // Segment message so that it will fit in Discord message limits. Append @everyone tag for mentions.
+                String[] segmentedMessage = StringUtils.segmentString("@everyone " + ((TLMessage) message).getMessage(), MessageEmbed.TEXT_MAX_LENGTH);
 
-                // Record message ID
-                relayedMessageMap.putIfAbsent(message.getChatId(), new HashSet<>());
-                relayedMessageMap.get(message.getChatId()).add(((TLMessage) message).getId());
+                try {
+                    for (int i = 0; i < segmentedMessage.length; i++) {
+                        // Build rich embed
+                        EmbedBuilder builder = new EmbedBuilder();
+
+                        // Title displays "pages" if necessary; "Call Made (1/3):", otherwise "Call Made:"
+                        builder.setTitle(segmentedMessage.length > 1 ? ("Call Made (" + (i + 1) + "/" + segmentedMessage.length + "):") : "Call Made:");
+                        builder.setDescription(segmentedMessage[i]);
+                        builder.setColor(Color.CYAN);
+
+                        // Queue message
+                        discordChannel.sendMessage(builder.build()).queue();
+                    }
+                } catch (Exception e) {
+                    logService.logException(getClass(), e, "Could not send Discord message.");
+                }
+
             }
         }
     }

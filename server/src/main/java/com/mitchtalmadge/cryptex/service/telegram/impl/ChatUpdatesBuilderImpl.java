@@ -1,5 +1,6 @@
 package com.mitchtalmadge.cryptex.service.telegram.impl;
 
+import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramContext;
 import com.mitchtalmadge.cryptex.service.telegram.TelegramService;
 import org.telegram.bot.ChatUpdatesBuilder;
 import org.telegram.bot.handlers.UpdatesHandlerBase;
@@ -12,14 +13,13 @@ import org.telegram.bot.kernel.differenceparameters.IDifferenceParametersService
  */
 public class ChatUpdatesBuilderImpl implements ChatUpdatesBuilder {
 
+    private TelegramContext telegramContext;
     private IKernelComm iKernelComm;
     private IDifferenceParametersService iDifferenceParametersService;
-    private DatabaseManagerImpl databaseManager = new DatabaseManagerImpl();
 
-    private TelegramService telegramService;
-
-    public ChatUpdatesBuilderImpl(TelegramService telegramService) {
-        this.telegramService = telegramService;
+    public ChatUpdatesBuilderImpl(TelegramContext telegramContext) {
+        this.telegramContext = telegramContext;
+        telegramContext.setDatabaseManager(new DatabaseManagerImpl());
     }
 
     @Override
@@ -34,11 +34,11 @@ public class ChatUpdatesBuilderImpl implements ChatUpdatesBuilder {
 
     @Override
     public DatabaseManager getDatabaseManager() {
-        return databaseManager;
+        return telegramContext.getDatabaseManager();
     }
 
     @Override
     public UpdatesHandlerBase build() {
-        return new UpdatesHandlerImpl(telegramService, iKernelComm, iDifferenceParametersService, databaseManager, new UsersHandlerImpl(databaseManager), new ChatsHandlerImpl(databaseManager));
+        return new UpdatesHandlerImpl(telegramContext, iKernelComm, iDifferenceParametersService);
     }
 }
