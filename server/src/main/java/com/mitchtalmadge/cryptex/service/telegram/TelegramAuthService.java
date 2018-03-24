@@ -167,7 +167,7 @@ public class TelegramAuthService implements MailListener {
     @Override
     public void readMail(Message[] unreadMessages) {
         // Check if we must search for a code.
-        if (telegramContext != null || loginStatus == LoginStatus.CODESENT) {
+        if (telegramContext != null && loginStatus == LoginStatus.CODESENT) {
 
             // Search for code
             for (Message message : unreadMessages) {

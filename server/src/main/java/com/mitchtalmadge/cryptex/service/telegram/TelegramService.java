@@ -123,34 +123,40 @@ public class TelegramService {
         TelegramChatHistoryEntity history = telegramChatHistoryEntityRepository.findFirstByPhoneNumberAndChatId(telegramContext.getPhoneNumber(), message.getChatId());
         if (history == null) {
             // Create a new chat history entity.
-            history = new TelegramChatHistoryEntity(telegramContext.getPhoneNumber(), message.getChatId(), ((TLMessage) message).getId());
+            history = new TelegramChatHistoryEntity(telegramContext.getPhoneNumber(), message.getChatId(), message.getId());
             telegramChatHistoryEntityRepository.save(history);
         } else {
             // Skip this message if we have already seen it.
-            if (history.getLastMessageId() >= ((TLMessage) message).getId())
+            if (history.getLastMessageId() >= message.getId()) {
+                logService.logInfo(getClass(), "Skipping message ID " + message.getId() + " in chat ID " + message.getChatId() + " as it is smaller than " + history.getLastMessageId());
                 return;
+            }
 
             // Update last seen message id.
-            history.setLastMessageId(((TLMessage) message).getId());
+            history.setLastMessageId(message.getId());
             telegramChatHistoryEntityRepository.save(history);
         }
 
         // TODO: check image
 
         // Ignore empty messages
-        if (((TLMessage) message).getMessage().isEmpty())
+        if (message.getMessage().isEmpty())
             return;
 
-        logService.logInfo(getClass(), "New Message Received: " + ((TLMessage) message).getMessage());
+        logService.logInfo(getClass(), "New Message Received: " + message.getMessage());
 
         // Send message to discord
         TextChannel discordChannel = discordService.getJDA().getTextChannelById(DISCORD_CHANNEL_ID);
         if (discordChannel != null) {
 
             // Segment message so that it will fit in Discord message limits. Append @everyone tag for mentions.
-            String[] segmentedMessage = StringUtils.segmentString("@everyone " + ((TLMessage) message).getMessage(), MessageEmbed.TEXT_MAX_LENGTH);
+            String[] segmentedMessage = StringUtils.segmentString(message.getMessage(), MessageEmbed.TEXT_MAX_LENGTH);
 
             try {
+                // Mention everyone.
+                discordChannel.sendMessage("@everyone").queue();
+
+                // Send segments
                 for (int i = 0; i < segmentedMessage.length; i++) {
                     // Build rich embed
                     EmbedBuilder builder = new EmbedBuilder();
@@ -160,8 +166,8 @@ public class TelegramService {
                     builder.setDescription(segmentedMessage[i]);
                     builder.setColor(Color.CYAN);
 
-                    // Queue message
-                    discordChannel.sendMessage(builder.build()).queue();
+                    // Queue and pin message
+                    discordChannel.sendMessage(builder.build()).queue(sentMessage -> discordChannel.pinMessageById(sentMessage.getId()).queue());
                 }
             } catch (Exception e) {
                 logService.logException(getClass(), e, "Could not send Discord message.");
