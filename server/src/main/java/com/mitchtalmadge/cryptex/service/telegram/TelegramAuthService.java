@@ -167,13 +167,15 @@ public class TelegramAuthService implements MailListener {
     @Override
     public void readMail(Message[] unreadMessages) {
         // Check if we must search for a code.
-        if (telegramContext.getBot() != null && loginStatus == LoginStatus.CODESENT) {
+        if (telegramContext != null || loginStatus == LoginStatus.CODESENT) {
 
             // Search for code
             for (Message message : unreadMessages) {
                 try {
                     // Determine if email is from TextNow.
                     if (message.getSubject().startsWith("TextNow")) {
+
+                        logService.logInfo(getClass(), "Text message received. Extracting code...");
 
                         // Extract body
                         List<String> bodyParts = new ArrayList<>();
@@ -182,7 +184,7 @@ public class TelegramAuthService implements MailListener {
                             bodyParts.add((String) contents);
                         } else if (contents instanceof Multipart) {
                             for (int i = 0; i < ((Multipart) contents).getCount(); i++) {
-                                bodyParts.add(((Multipart) contents).getBodyPart(i).toString());
+                                bodyParts.add(((Multipart) contents).getBodyPart(i).getContent().toString());
                             }
                         }
 
