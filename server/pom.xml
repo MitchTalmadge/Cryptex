@@ -6,7 +6,7 @@
 
     <groupId>com.mitchtalmadge</groupId>
     <artifactId>cryptex</artifactId>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
 
     <name>cryptex</name>
     <description>
@@ -25,6 +25,14 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>jcenter</id>
+            <name>jcenter-bintray</name>
+            <url>http://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
 
     <dependencies>
 
@@ -58,11 +66,37 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Discord-->
+        <dependency>
+            <groupId>net.dv8tion</groupId>
+            <artifactId>JDA</artifactId>
+            <version>3.5.0_327</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20170516</version>
+        </dependency>
+
+        <!-- Telegram -->
+        <dependency>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegramapi</artifactId>
+            <version>66.2</version>
+        </dependency>
+
         <!-- Twitter -->
         <dependency>
             <groupId>org.twitter4j</groupId>
             <artifactId>twitter4j-core</artifactId>
             <version>4.0.6</version>
+        </dependency>
+
+        <!-- Mail -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.1</version>
         </dependency>
 
         <!-- Raygun Exception Handler -->
@@ -86,6 +120,13 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.7</version>
+        </dependency>
+
+        <!-- Utils -->
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.11</version>
         </dependency>
 
         <!-- Testing -->

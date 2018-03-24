@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-@EnableAsync
+@EnableAsync(proxyTargetClass = true)
 public class CryptexApplication {
 
     public static void main(String[] args) {
