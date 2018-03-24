@@ -1,9 +1,8 @@
 package com.mitchtalmadge.cryptex.domain.entity.telegram;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Objects;
 
 /**
@@ -29,10 +28,10 @@ public class TelegramChatHistoryEntity {
     private int chatId;
 
     /**
-     * The ID of the last seen message for this chat.
+     * The creation time of the last seen message for this chat.
      */
-    @Column(name = "last_message_id")
-    private int lastMessageId;
+    @Column(name = "last_message_time")
+    private LocalDateTime lastMessageTime;
 
     public TelegramChatHistoryEntity() {
     }
@@ -41,12 +40,12 @@ public class TelegramChatHistoryEntity {
      * Constructs a Telegram chat history record.
      * @param phoneNumber The phone number of the account associated with this history.
      * @param chatId The ID of the chat associated with this history.
-     * @param lastMessageId The ID of the last seen message for this chat.
+     * @param lastMessageTime The creation time of the last message received.
      */
-    public TelegramChatHistoryEntity(String phoneNumber, int chatId, int lastMessageId) {
+    public TelegramChatHistoryEntity(String phoneNumber, int chatId, LocalDateTime lastMessageTime) {
         this.phoneNumber = phoneNumber;
         this.chatId = chatId;
-        this.lastMessageId = lastMessageId;
+        this.lastMessageTime = lastMessageTime;
     }
 
     public Long getId() {
@@ -69,12 +68,12 @@ public class TelegramChatHistoryEntity {
         this.chatId = chatId;
     }
 
-    public int getLastMessageId() {
-        return lastMessageId;
+    public LocalDateTime getLastMessageTime() {
+        return lastMessageTime;
     }
 
-    public void setLastMessageId(int lastMessageId) {
-        this.lastMessageId = lastMessageId;
+    public void setLastMessageTime(LocalDateTime lastMessageTime) {
+        this.lastMessageTime = lastMessageTime;
     }
 
     @Override
@@ -83,12 +82,13 @@ public class TelegramChatHistoryEntity {
         if (o == null || getClass() != o.getClass()) return false;
         TelegramChatHistoryEntity that = (TelegramChatHistoryEntity) o;
         return chatId == that.chatId &&
-                lastMessageId == that.lastMessageId &&
-                Objects.equals(phoneNumber, that.phoneNumber);
+                Objects.equals(phoneNumber, that.phoneNumber) &&
+                Objects.equals(lastMessageTime, that.lastMessageTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(phoneNumber, chatId, lastMessageId);
+
+        return Objects.hash(phoneNumber, chatId, lastMessageTime);
     }
 }

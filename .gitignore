@@ -3,4 +3,4 @@
 *.iml
 .idea
 *.log
-telegram.auth
+*.auth
