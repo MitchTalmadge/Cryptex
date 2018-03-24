@@ -50,12 +50,13 @@ jobs:
 
         - cd .. # Move built Server jar to root
         - mv server/target/cryptex.jar .
+
+        - heroku buildpacks:clear --app mitchtalmadge-cryptex
+        - heroku buildpacks:set heroku/jvm --app mitchtalmadge-cryptex
       deploy:
         skip_cleanup: true
         provider: script
         script:
-          - heroku buildpacks:clear --app mitchtalmadge-cryptex
-          - heroku buildpacks:set heroku/jvm --app mitchtalmadge-cryptex
           - heroku deploy:jar cryptex.jar --app mitchtalmadge-cryptex
         on:
           tags: true
