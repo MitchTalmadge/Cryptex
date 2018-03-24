@@ -24,6 +24,10 @@ import org.telegram.bot.structure.IUser;
 
 import javax.annotation.PostConstruct;
 import java.awt.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -119,60 +123,64 @@ public class TelegramService {
      * @param message         The message received.
      */
     public void messageReceived(TelegramContext telegramContext, TLMessage message) {
-        // Check chat history to see if we have seen this message.
-        TelegramChatHistoryEntity history = telegramChatHistoryEntityRepository.findFirstByPhoneNumberAndChatId(telegramContext.getPhoneNumber(), message.getChatId());
-        if (history == null) {
-            // Create a new chat history entity.
-            history = new TelegramChatHistoryEntity(telegramContext.getPhoneNumber(), message.getChatId(), message.getId());
-            telegramChatHistoryEntityRepository.save(history);
-        } else {
-            // Skip this message if we have already seen it.
-            if (history.getLastMessageId() >= message.getId()) {
-                logService.logInfo(getClass(), "Skipping message ID " + message.getId() + " in chat ID " + message.getChatId() + " as it is smaller than " + history.getLastMessageId());
-                return;
-            }
-
-            // Update last seen message id.
-            history.setLastMessageId(message.getId());
-            telegramChatHistoryEntityRepository.save(history);
-        }
-
-        // TODO: check image
-
-        // Ignore empty messages
-        if (message.getMessage().isEmpty())
-            return;
-
-        logService.logInfo(getClass(), "New Message Received: " + message.getMessage());
-
-        // Send message to discord
-        TextChannel discordChannel = discordService.getJDA().getTextChannelById(DISCORD_CHANNEL_ID);
-        if (discordChannel != null) {
-
-            // Segment message so that it will fit in Discord message limits. Append @everyone tag for mentions.
-            String[] segmentedMessage = StringUtils.segmentString(message.getMessage(), MessageEmbed.TEXT_MAX_LENGTH);
-
-            try {
-                // Mention everyone.
-                discordChannel.sendMessage("@everyone").queue();
-
-                // Send segments
-                for (int i = 0; i < segmentedMessage.length; i++) {
-                    // Build rich embed
-                    EmbedBuilder builder = new EmbedBuilder();
-
-                    // Title displays "pages" if necessary; "Call Made (1/3):", otherwise "Call Made:"
-                    builder.setTitle(segmentedMessage.length > 1 ? ("Call Made (" + (i + 1) + "/" + segmentedMessage.length + "):") : "Call Made:");
-                    builder.setDescription(segmentedMessage[i]);
-                    builder.setColor(Color.CYAN);
-
-                    // Queue and pin message
-                    discordChannel.sendMessage(builder.build()).queue(sentMessage -> discordChannel.pinMessageById(sentMessage.getId()).queue());
+        try {
+            // Check chat history to see if we have seen this message.
+            TelegramChatHistoryEntity history = telegramChatHistoryEntityRepository.findFirstByPhoneNumberAndChatId(telegramContext.getPhoneNumber(), message.getChatId());
+            if (history == null) {
+                // Create a new chat history entity.
+                history = new TelegramChatHistoryEntity(telegramContext.getPhoneNumber(), message.getChatId(), LocalDateTime.ofEpochSecond(message.getDate(), 0, ZoneOffset.UTC));
+                telegramChatHistoryEntityRepository.save(history);
+            } else {
+                // Skip this message if we have already seen it.
+                if (history.getLastMessageTime().isAfter(LocalDateTime.ofEpochSecond(message.getDate(), 0, ZoneOffset.UTC))) {
+                    logService.logInfo(getClass(), "Skipping message ID " + message.getId() + " in chat ID " + message.getChatId() + " as it is too old.");
+                    return;
                 }
-            } catch (Exception e) {
-                logService.logException(getClass(), e, "Could not send Discord message.");
+
+                // Update last seen message id.
+                history.setLastMessageTime(LocalDateTime.ofEpochSecond(message.getDate(), 0, ZoneOffset.UTC));
+                telegramChatHistoryEntityRepository.save(history);
             }
 
+            // TODO: check image
+
+            // Ignore empty messages
+            if (message.getMessage().isEmpty())
+                return;
+
+            logService.logInfo(getClass(), "New Message Received: " + message.getMessage());
+
+            // Send message to discord
+            TextChannel discordChannel = discordService.getJDA().getTextChannelById(DISCORD_CHANNEL_ID);
+            if (discordChannel != null) {
+
+                // Segment message so that it will fit in Discord message limits. Append @everyone tag for mentions.
+                String[] segmentedMessage = StringUtils.segmentString(message.getMessage(), MessageEmbed.TEXT_MAX_LENGTH);
+
+                try {
+                    // Mention everyone.
+                    discordChannel.sendMessage("@everyone").queue();
+
+                    // Send segments
+                    for (int i = 0; i < segmentedMessage.length; i++) {
+                        // Build rich embed
+                        EmbedBuilder builder = new EmbedBuilder();
+
+                        // Title displays "pages" if necessary; "Call Made (1/3):", otherwise "Call Made:"
+                        builder.setTitle(segmentedMessage.length > 1 ? ("Call Made (" + (i + 1) + "/" + segmentedMessage.length + "):") : "Call Made:");
+                        builder.setDescription(segmentedMessage[i]);
+                        builder.setColor(Color.CYAN);
+
+                        // Queue and pin message
+                        discordChannel.sendMessage(builder.build()).queue(sentMessage -> discordChannel.pinMessageById(sentMessage.getId()).queue());
+                    }
+                } catch (Exception e) {
+                    logService.logException(getClass(), e, "Could not send Discord message.");
+                }
+
+            }
+        } catch (Exception e) {
+            logService.logException(getClass(), e, "Could not handle message");
         }
     }
 

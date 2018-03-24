@@ -17,6 +17,9 @@ import org.telegram.bot.kernel.IKernelComm;
 import org.telegram.bot.kernel.database.DatabaseManager;
 import org.telegram.bot.kernel.differenceparameters.IDifferenceParametersService;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
 /**
@@ -30,13 +33,13 @@ public class UpdatesHandlerImpl extends DefaultUpdatesHandler {
     private final IChatsHandler chatsHandler;
 
     /**
-     * Maps IDs of chats which are currently in overflow protection mode to the last received message.
+     * Maps IDs of chats which are currently in overflow protection mode to the time the first message of the channel was received for this session.
      * This facilitates the ability to discard all but the last-sent message in a chat.
      * <p>
      * The intent is to prevent mass message spam for newly joined channels,
      * or channels which have not been visited in a while.
      */
-    private final Map<Integer, TLMessage> overflowProtectionMap = new HashMap<>();
+    private final Map<Integer, LocalDateTime> overflowProtectionMap = new HashMap<>();
 
     /**
      * Creates an Updates Handler.
@@ -61,16 +64,6 @@ public class UpdatesHandlerImpl extends DefaultUpdatesHandler {
     @Override
     protected void onChatsCustom(List<TLAbsChat> chats) {
         chatsHandler.onChats(chats);
-
-        // Send any messages in the overflow protection map.
-        overflowProtectionMap.values().forEach(message -> {
-            if(message != null) {
-                telegramContext.getTelegramService().messageReceived(telegramContext, message);
-            }
-        });
-
-        // Clear overflow protection map.
-        overflowProtectionMap.clear();
     }
 
     @Override
@@ -78,12 +71,18 @@ public class UpdatesHandlerImpl extends DefaultUpdatesHandler {
         // If this is the first message received in this channel for this session...
         if (message instanceof TLMessageService) {
             if (((TLMessageService) message).getAction() instanceof TLMessageActionChannelCreate) {
-                overflowProtectionMap.put(message.getChatId(), null);
+                // Store current time.
+                overflowProtectionMap.put(message.getChatId(), LocalDateTime.now().minusMinutes(1));
             }
         } else if (message instanceof TLMessage) {
             // Check if we are in overflow protection mode
             if (overflowProtectionMap.containsKey(message.getChatId())) {
-                overflowProtectionMap.put(message.getChatId(), (TLMessage) message);
+                // Check if this message was sent after 1 minute before the overflow time.
+                if (overflowProtectionMap.get(message.getChatId()).isBefore(LocalDateTime.ofEpochSecond(((TLMessage) message).getDate(), 0, ZoneOffset.UTC))) {
+                    // Done with overflow protection.
+                    overflowProtectionMap.remove(message.getChatId());
+                    telegramContext.getTelegramService().messageReceived(telegramContext, (TLMessage) message);
+                }
             } else {
                 telegramContext.getTelegramService().messageReceived(telegramContext, (TLMessage) message);
             }

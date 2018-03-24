@@ -1,0 +1,14 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.2.xsd">
+
+    <!-- Modifies the telegram chat history table to use timestamps instead of message ids. -->
+    <changeSet id="4" author="Mitch Talmadge">
+        <dropColumn tableName="telegram_chat_history" columnName="last_message_id" />
+        <addColumn tableName="telegram_chat_history">
+            <column name="last_message_time" type="timestamp" defaultValueDate="(now() AT TIME ZONE 'UTC')" />
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

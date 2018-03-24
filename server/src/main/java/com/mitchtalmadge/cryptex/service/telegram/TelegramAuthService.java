@@ -3,6 +3,7 @@ package com.mitchtalmadge.cryptex.service.telegram;
 import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramContext;
 import com.mitchtalmadge.cryptex.domain.entity.FileEntity;
 import com.mitchtalmadge.cryptex.service.LogService;
+import com.mitchtalmadge.cryptex.service.SpringProfileService;
 import com.mitchtalmadge.cryptex.service.entity.FileEntityRepository;
 import com.mitchtalmadge.cryptex.service.mail.MailListener;
 import com.mitchtalmadge.cryptex.service.telegram.impl.BotConfigImpl;
@@ -22,17 +23,13 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Manages authentication and de-authentication with Telegram.
  */
 @Service
 public class TelegramAuthService implements MailListener {
-
-    /**
-     * The name of the auth file in the running directory.
-     */
-    private static final String AUTH_FILE_NAME = "telegram.auth";
 
     private TelegramContext telegramContext;
 
@@ -43,24 +40,23 @@ public class TelegramAuthService implements MailListener {
 
     private LogService logService;
 
+    private SpringProfileService springProfileService;
     private FileEntityRepository fileEntityRepository;
 
     @Autowired
-    public TelegramAuthService(LogService logService, FileEntityRepository fileEntityRepository) {
+    public TelegramAuthService(LogService logService,
+                               SpringProfileService springProfileService,
+                               FileEntityRepository fileEntityRepository) {
         this.logService = logService;
+        this.springProfileService = springProfileService;
         this.fileEntityRepository = fileEntityRepository;
-    }
-
-    @PostConstruct
-    private void init() {
-        restoreAuthFromDatabase();
     }
 
     /**
      * Writes the contents of the auth file to the database.
      */
-    private void writeAuthToDatabase() {
-        File authFile = new File(AUTH_FILE_NAME);
+    private void writeAuthToDatabase(TelegramContext telegramContext) {
+        File authFile = new File(getAuthFileName(telegramContext));
         if (!authFile.exists()) {
             logService.logError(getClass(), "Tried to write auth file to database, but it did not exist.");
             return;
@@ -77,7 +73,7 @@ public class TelegramAuthService implements MailListener {
             }
 
             // Store contents in database.
-            List<FileEntity> fileEntities = fileEntityRepository.findByName(AUTH_FILE_NAME);
+            List<FileEntity> fileEntities = fileEntityRepository.findByName(getAuthFileName(telegramContext));
             if (fileEntities.size() > 0) {
                 // Update existing record.
                 FileEntity fileEntity = fileEntities.get(0);
@@ -85,7 +81,7 @@ public class TelegramAuthService implements MailListener {
                 fileEntityRepository.save(fileEntity);
             } else {
                 // Create new record.
-                FileEntity fileEntity = new FileEntity(AUTH_FILE_NAME, contents);
+                FileEntity fileEntity = new FileEntity(getAuthFileName(telegramContext), contents);
                 fileEntityRepository.save(fileEntity);
             }
 
@@ -100,11 +96,11 @@ public class TelegramAuthService implements MailListener {
      * Restores the contents of the auth file from the database.
      * If a file is not stored in the database, nothing is written.
      */
-    private void restoreAuthFromDatabase() {
-        List<FileEntity> fileEntities = fileEntityRepository.findByName(AUTH_FILE_NAME);
+    private void restoreAuthFromDatabase(TelegramContext telegramContext) {
+        List<FileEntity> fileEntities = fileEntityRepository.findByName(getAuthFileName(telegramContext));
         if (fileEntities.size() > 0) {
             byte[] contents = fileEntities.get(0).getContents();
-            File authFile = new File(AUTH_FILE_NAME);
+            File authFile = new File(getAuthFileName(telegramContext));
 
             // Delete existing auth file.
             if (authFile.exists()) {
@@ -146,22 +142,45 @@ public class TelegramAuthService implements MailListener {
     @Async
     public void signIn(TelegramContext telegramContext) {
 
+        //TODO: Don't make this global
         this.telegramContext = telegramContext;
 
-        telegramContext.getBot().getConfig().setAuthfile(AUTH_FILE_NAME);
+        // Load auth file
+        restoreAuthFromDatabase(telegramContext);
+        telegramContext.getBot().getConfig().setAuthfile(getAuthFileName(telegramContext));
 
+        // Begin sign-in process
         try {
             // Initialize bot and check status.
             loginStatus = telegramContext.getBot().init();
 
+            // Allow direct code input in development mode
+            if (springProfileService.isProfileActive(SpringProfileService.Profile.DEV) && loginStatus == LoginStatus.CODESENT) {
+                Scanner scanner = new Scanner(System.in);
+                boolean success = telegramContext.getBot().getKernelAuth().setAuthCode(scanner.nextLine().trim());
+                logService.logInfo(getClass(), "Code Valid: " + success);
+                if (success)
+                    loginStatus = LoginStatus.ALREADYLOGGED;
+            }
+
             // Check if we can start the bot right away.
             if (loginStatus == LoginStatus.ALREADYLOGGED) {
                 telegramContext.getBot().startBot();
-                writeAuthToDatabase();
+                writeAuthToDatabase(telegramContext);
             }
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             logService.logException(getClass(), e, "Failed to initialize Telegram Service.");
         }
+    }
+
+    /**
+     * Determines the auth file name for a given Telegram Context.
+     *
+     * @param telegramContext The context.
+     * @return The auth file name.
+     */
+    private String getAuthFileName(TelegramContext telegramContext) {
+        return "telegram_" + telegramContext.getPhoneNumber() + "_" + telegramContext.getApiId() + ".auth";
     }
 
     @Override
@@ -199,13 +218,19 @@ public class TelegramAuthService implements MailListener {
                                 logService.logInfo(getClass(), "Found Telegram code: " + code);
 
                                 // Apply code.
-                                telegramContext.getBot().getKernelAuth().setAuthCode(code);
-                                loginStatus = LoginStatus.ALREADYLOGGED;
+                                boolean success = telegramContext.getBot().getKernelAuth().setAuthCode(code);
+                                if (success) {
+                                    logService.logInfo(getClass(), "Code was valid. Signing in.");
+                                    loginStatus = LoginStatus.ALREADYLOGGED;
 
-                                // Start bot.
-                                telegramContext.getBot().startBot();
-                                writeAuthToDatabase();
-                                return;
+                                    // Start bot.
+                                    telegramContext.getBot().startBot();
+                                    writeAuthToDatabase(telegramContext);
+
+                                    return;
+                                } else {
+                                    logService.logInfo(getClass(), "Code was invalid.");
+                                }
                             }
                         }
                     }

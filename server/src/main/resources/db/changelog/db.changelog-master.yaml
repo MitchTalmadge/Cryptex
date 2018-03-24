@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/changeSets/2__File_Entity.xml
   - include:
       file: db/changelog/changeSets/3__Telegram_Chat_History.xml
+  - include:
+      file: db/changelog/changeSets/4__Telegram_Chat_History_Modify.xml
