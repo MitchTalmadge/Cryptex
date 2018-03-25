@@ -90,7 +90,7 @@ public class DiscordInboundRelayService {
                 EmbedBuilder builder = new EmbedBuilder();
 
                 // Title displays "pages" if necessary; "Title: (1/3)", otherwise "Title:"
-                builder.setTitle(segmentedMessage.length > 1 ? (title + " (" + (i + 1) + "/" + ")") : title);
+                builder.setTitle(segmentedMessage.length > 1 ? (title + " (" + (i + 1) + "/" + segmentedMessage.length + ")") : title);
                 builder.setDescription(segment);
                 builder.setColor(Color.CYAN);
 
