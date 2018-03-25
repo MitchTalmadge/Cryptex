@@ -83,6 +83,15 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Telegram -->
+        <dependency>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegramapi</artifactId>
+            <version>66.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/TelegramApi.jar</systemPath>
+        </dependency>
+
         <!-- Twitter -->
         <dependency>
             <groupId>org.twitter4j</groupId>
