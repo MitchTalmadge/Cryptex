@@ -20,8 +20,7 @@ jobs:
 
     - stage: test
       language: java
-      jdk:
-        - oraclejdk8
+      jdk: oraclejdk9
       cache:
         directories:
           - "$HOME/.m2"
@@ -38,8 +37,7 @@ jobs:
       language: java
       node_js:
         - "8"
-      jdk:
-        - oraclejdk8
+      jdk: oraclejdk9
       cache:
         directories:
           - "$HOME/.m2"
