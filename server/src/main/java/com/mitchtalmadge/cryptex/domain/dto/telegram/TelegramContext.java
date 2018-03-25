@@ -1,5 +1,6 @@
 package com.mitchtalmadge.cryptex.domain.dto.telegram;
 
+import com.mitchtalmadge.cryptex.service.telegram.TelegramOutboundRelayService;
 import com.mitchtalmadge.cryptex.service.telegram.TelegramService;
 import com.mitchtalmadge.cryptex.service.telegram.impl.DatabaseManagerImpl;
 import org.telegram.bot.kernel.TelegramBot;
@@ -13,6 +14,11 @@ public class TelegramContext {
      * The TelegramService instance.
      */
     private TelegramService telegramService;
+
+    /**
+     * The TelegramOutboundRelayService instance.
+     */
+    private TelegramOutboundRelayService telegramOutboundRelayService;
 
     /**
      * The phone number of the Telegram user.
@@ -45,6 +51,14 @@ public class TelegramContext {
 
     public void setTelegramService(TelegramService telegramService) {
         this.telegramService = telegramService;
+    }
+
+    public TelegramOutboundRelayService getTelegramOutboundRelayService() {
+        return telegramOutboundRelayService;
+    }
+
+    public void setTelegramOutboundRelayService(TelegramOutboundRelayService telegramOutboundRelayService) {
+        this.telegramOutboundRelayService = telegramOutboundRelayService;
     }
 
     public String getPhoneNumber() {

@@ -73,8 +73,8 @@ public class LogService {
      */
     public void logException(Class clazz, Throwable t, String message) {
         // Remove trailing periods.
-        if (message.endsWith("."))
-            message = message.substring(0, message.length() - 2);
+        if (message.endsWith(".") || message.endsWith(":"))
+            message = message.substring(0, message.length() - 1);
 
         // Log message.
         LOGGER.error("[" + clazz.getSimpleName() + "] " + message, t);
