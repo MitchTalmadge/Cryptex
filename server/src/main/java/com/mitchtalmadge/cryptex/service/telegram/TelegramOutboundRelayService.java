@@ -58,7 +58,7 @@ public class TelegramOutboundRelayService {
             telegramChatHistoryEntityRepository.save(history);
         } else {
             // Skip this message if we have already seen it.
-            if (history.getLastMessageTime().isAfter(message.getCreationDate())) {
+            if (history.getLastMessageTime().isEqual(message.getCreationDate()) || history.getLastMessageTime().isAfter(message.getCreationDate())) {
                 logService.logInfo(getClass(), "Skipping relay of message ID " + message.getId() + " in chat ID " + message.getChatId() + " as it is too old.");
                 return;
             }
