@@ -6,7 +6,7 @@
 
     <groupId>com.mitchtalmadge</groupId>
     <artifactId>cryptex</artifactId>
-    <version>1.2.1</version>
+    <version>develop-SNAPSHOT</version>
 
     <name>cryptex</name>
     <description>
