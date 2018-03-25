@@ -83,7 +83,7 @@ public class TelegramOutboundRelayService {
                 try {
                     // Download photo
                     TLFile photoFile = (TLFile) telegramContext.getBot().getKernelComm().getApi().doGetFile(photoFileLocation.getDcId(), new TLInputFileLocation(photoFileLocation), 0, (int) Math.pow(2, Math.ceil(Math.log((double) photoSize.getSize()) / Math.log(2))));
-                    logService.logInfo(getClass(), "Relaying image from chat ID " + message.getChatId());
+                    logService.logInfo(getClass(), "Relaying image from message ID " + message.getId() + " in chat ID " + message.getChatId());
 
                     // Relay to discord
                     discordInboundRelayService.notifyEveryone(DISCORD_CHANNEL_ID);
@@ -100,7 +100,7 @@ public class TelegramOutboundRelayService {
         if (message.getContents().isEmpty())
             return;
 
-        logService.logInfo(getClass(), "Relaying message from chat ID " + message.getChatId());
+        logService.logInfo(getClass(), "Relaying message ID " + message.getId() + " from chat ID " + message.getChatId());
         logService.logDebug(getClass(), "Message: " + message.getContents());
 
         // Relay to Discord.
