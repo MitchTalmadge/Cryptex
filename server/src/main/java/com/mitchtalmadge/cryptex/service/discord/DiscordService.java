@@ -1,5 +1,6 @@
-package com.mitchtalmadge.cryptex.service;
+package com.mitchtalmadge.cryptex.service.discord;
 
+import com.mitchtalmadge.cryptex.service.LogService;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;

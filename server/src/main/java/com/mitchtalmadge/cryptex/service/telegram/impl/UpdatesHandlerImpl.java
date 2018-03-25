@@ -81,25 +81,12 @@ public class UpdatesHandlerImpl extends DefaultUpdatesHandler {
                 if (overflowProtectionMap.get(message.getChatId()).isBefore(LocalDateTime.ofEpochSecond(((TLMessage) message).getDate(), 0, ZoneOffset.UTC))) {
                     // Done with overflow protection.
                     overflowProtectionMap.remove(message.getChatId());
-                    telegramContext.getTelegramService().messageReceived(telegramContext, (TLMessage) message);
+                    telegramContext.getTelegramOutboundRelayService().messageReceived(telegramContext, (TLMessage) message);
                 }
             } else {
-                telegramContext.getTelegramService().messageReceived(telegramContext, (TLMessage) message);
+                telegramContext.getTelegramOutboundRelayService().messageReceived(telegramContext, (TLMessage) message);
             }
         }
-    }
-
-
-    @Override
-    protected void onTLUpdateChannelNewMessageCustom(TLUpdateChannelNewMessage update) {
-        if (update.getMessage() instanceof TLMessage)
-            telegramContext.getTelegramService().messageReceived(telegramContext, (TLMessage) update.getMessage());
-    }
-
-    @Override
-    protected void onTLUpdateNewMessageCustom(TLUpdateNewMessage update) {
-        if (update.getMessage() instanceof TLMessage)
-            telegramContext.getTelegramService().messageReceived(telegramContext, (TLMessage) update.getMessage());
     }
 
 }
