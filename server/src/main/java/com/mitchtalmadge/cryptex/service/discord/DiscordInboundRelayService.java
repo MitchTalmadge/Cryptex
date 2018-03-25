@@ -3,13 +3,19 @@ package com.mitchtalmadge.cryptex.service.discord;
 import com.mitchtalmadge.cryptex.service.LogService;
 import com.mitchtalmadge.cryptex.util.StringUtils;
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.TextChannel;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URLConnection;
 
 /**
  * This service allows for relaying messages to Discord channels from external sources.
@@ -107,4 +113,47 @@ public class DiscordInboundRelayService {
 
     }
 
+    /**
+     * Relays an image and caption to a specific Discord channel.
+     *
+     * @param imageData The data of the image file (PNG, JPG, etc).
+     * @param caption   The image caption. Optional.
+     * @param channelId The ID of the Discord channel.
+     */
+    public void relayImage(byte[] imageData, String caption, String channelId) {
+        // Find channel
+        TextChannel channel = discordService.getJDA().getTextChannelById(channelId);
+        if (channel == null) {
+            logService.logInfo(getClass(), "Channel not found for id: " + channelId);
+            return;
+        }
+
+        // Validate image data
+        String mediaTypeStr = new Tika().detect(imageData);
+        if (mediaTypeStr == null) {
+            logService.logError(getClass(), "Could not determine image media type for relay.");
+            return;
+        }
+
+        MediaType mediaType = MediaType.parseMediaType(mediaTypeStr);
+        String fileExtension = mediaType.equals(MediaType.IMAGE_PNG) ? "png" : mediaType.equals(MediaType.IMAGE_JPEG) ? "jpg" : mediaType.equals(MediaType.IMAGE_GIF) ? "gif" : null;
+        if (fileExtension == null) {
+            logService.logError(getClass(), "Media type invalid for relaying image: " + mediaType);
+            return;
+        }
+
+        String fileName = "image." + fileExtension;
+
+        logService.logInfo(getClass(), "Relaying image to channel '" + channel.getName() + "'");
+        logService.logDebug(getClass(), "Media type: " + mediaType);
+        logService.logDebug(getClass(), "File name: " + fileName);
+
+        // Send to Discord.
+        if (caption != null && !caption.isEmpty()) {
+            Message message = new MessageBuilder().append(caption).build();
+            channel.sendFile(imageData, fileName, message).queue();
+        } else {
+            channel.sendFile(imageData, fileName).queue();
+        }
+    }
 }

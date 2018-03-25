@@ -1,14 +1,17 @@
 package com.mitchtalmadge.cryptex.service.telegram.impl;
 
 import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramContext;
+import com.mitchtalmadge.cryptex.domain.dto.telegram.TelegramMessage;
 import com.mitchtalmadge.cryptex.service.telegram.TelegramService;
 import org.telegram.api.chat.TLAbsChat;
+import org.telegram.api.engine.RpcException;
 import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.message.TLMessage;
 import org.telegram.api.message.TLMessageService;
 import org.telegram.api.message.action.TLMessageActionChannelCreate;
 import org.telegram.api.update.TLUpdateChannelNewMessage;
 import org.telegram.api.update.TLUpdateNewMessage;
+import org.telegram.api.updates.TLUpdateShortMessage;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.bot.handlers.DefaultUpdatesHandler;
 import org.telegram.bot.handlers.interfaces.IChatsHandler;
@@ -16,6 +19,8 @@ import org.telegram.bot.handlers.interfaces.IUsersHandler;
 import org.telegram.bot.kernel.IKernelComm;
 import org.telegram.bot.kernel.database.DatabaseManager;
 import org.telegram.bot.kernel.differenceparameters.IDifferenceParametersService;
+import org.telegram.bot.structure.Chat;
+import org.telegram.bot.structure.IUser;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -81,12 +86,55 @@ public class UpdatesHandlerImpl extends DefaultUpdatesHandler {
                 if (overflowProtectionMap.get(message.getChatId()).isBefore(LocalDateTime.ofEpochSecond(((TLMessage) message).getDate(), 0, ZoneOffset.UTC))) {
                     // Done with overflow protection.
                     overflowProtectionMap.remove(message.getChatId());
-                    telegramContext.getTelegramOutboundRelayService().messageReceived(telegramContext, (TLMessage) message);
+                    handleMessage(new TelegramMessage((TLMessage) message));
                 }
             } else {
-                telegramContext.getTelegramOutboundRelayService().messageReceived(telegramContext, (TLMessage) message);
+                handleMessage(new TelegramMessage((TLMessage) message));
             }
         }
     }
 
+    @Override
+    protected void onTLUpdateChannelNewMessageCustom(TLUpdateChannelNewMessage update) {
+        if (update.getMessage() instanceof TLMessage)
+            handleMessage(new TelegramMessage((TLMessage) update.getMessage()));
+    }
+
+    @Override
+    protected void onTLUpdateNewMessageCustom(TLUpdateNewMessage update) {
+        if (update.getMessage() instanceof TLMessage)
+            handleMessage(new TelegramMessage((TLMessage) update.getMessage()));
+    }
+
+    @Override
+    protected void onTLUpdateShortMessageCustom(TLUpdateShortMessage update) {
+        handleMessage(new TelegramMessage(update));
+    }
+
+    /**
+     * Relays and reads a message.
+     *
+     * @param message The message.
+     */
+    private void handleMessage(TelegramMessage message) {
+        // Relay message
+        telegramContext.getTelegramOutboundRelayService().messageReceived(telegramContext, message);
+
+        // Read message
+        Chat chat = telegramContext.getDatabaseManager().getChatById(message.getChatId());
+        if (chat != null) {
+            try {
+                telegramContext.getBot().getKernelComm().performMarkGroupAsRead(chat, message.getId());
+            } catch (RpcException ignored) {
+            }
+        } else {
+            IUser user = telegramContext.getDatabaseManager().getUserById(message.getChatId());
+            if (user != null) {
+                try {
+                    telegramContext.getBot().getKernelComm().performMarkAsRead(user, message.getId());
+                } catch (RpcException ignored) {
+                }
+            }
+        }
+    }
 }
