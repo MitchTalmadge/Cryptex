@@ -34,6 +34,13 @@ jobs:
     - stage: deploy
       sudo: required
       language: java
+      node_js:
+        - "6"
+      cache:
+        directories:
+          - "$HOME/.m2"
+          - "web/node_modules"
+          - "web/.awcache"
       before_script:
         - wget -qO- https://cli-assets.heroku.com/install-ubuntu.sh | sh
         - heroku plugins:install heroku-cli-deploy

@@ -6,7 +6,7 @@
 
     <groupId>com.mitchtalmadge</groupId>
     <artifactId>cryptex</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3-SNAPSHOT</version>
 
     <name>cryptex</name>
     <description>
@@ -28,9 +28,21 @@
 
     <repositories>
         <repository>
+            <id>JBoss</id>
+            <name>JBoss Repository</name>
+            <layout>default</layout>
+            <url>http://repository.jboss.org/maven2</url>
+        </repository>
+
+        <repository>
             <id>jcenter</id>
             <name>jcenter-bintray</name>
             <url>http://jcenter.bintray.com</url>
+        </repository>
+
+        <repository>
+            <id>local-repo</id>
+            <url>file://${project.basedir}/lib</url>
         </repository>
     </repositories>
 
@@ -87,9 +99,7 @@
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegramapi</artifactId>
-            <version>66.2</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/TelegramApi.jar</systemPath>
+            <version>66.3</version>
         </dependency>
 
         <!-- Twitter -->
