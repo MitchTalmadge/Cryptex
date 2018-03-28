@@ -79,7 +79,7 @@ public class DiscordInboundRelayService {
         }
 
         // Segment message so that it will fit in Discord message limits.
-        String[] segmentedMessage = StringUtils.segmentString(message, embed ? MessageEmbed.TEXT_MAX_LENGTH : Message.MAX_CONTENT_LENGTH);
+        String[] segmentedMessage = StringUtils.segmentString(message, embed ? 750 : Message.MAX_CONTENT_LENGTH);
 
         // Send segments
         for (int i = 0; i < segmentedMessage.length; i++) {

@@ -6,6 +6,7 @@ import com.mitchtalmadge.cryptex.domain.entity.telegram.TelegramChatHistoryEntit
 import com.mitchtalmadge.cryptex.service.LogService;
 import com.mitchtalmadge.cryptex.service.discord.DiscordInboundRelayService;
 import com.mitchtalmadge.cryptex.service.entity.telegram.TelegramChatHistoryEntityRepository;
+import com.mitchtalmadge.cryptex.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.api.file.location.TLFileLocation;
@@ -105,7 +106,7 @@ public class TelegramOutboundRelayService {
 
         // Relay to Discord.
         discordInboundRelayService.notifyEveryone(DISCORD_CHANNEL_ID);
-        discordInboundRelayService.relayMessage(message.getContents(), "Call Made", DISCORD_CHANNEL_ID, true, true);
+        discordInboundRelayService.relayMessage(StringUtils.suppressLinks(message.getContents()), "Call Made", DISCORD_CHANNEL_ID, true, false);
     }
 
 }
