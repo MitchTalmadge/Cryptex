@@ -43,7 +43,7 @@ public class StringUtils {
      * Breaks a string up into chunks that are at most maxLength long.
      * Attempts to break the string on spaces when possible.
      *
-     * @param str The string to split.
+     * @param str       The string to split.
      * @param maxLength The maximum length of each chunk.
      * @return The split string.
      */
@@ -55,7 +55,7 @@ public class StringUtils {
         String remainder = str;
 
         // Split string as long as necessary.
-        while(remainder.length() > maxLength) {
+        while (remainder.length() > maxLength) {
             String[] splitParts = StringUtils.splitOnSpace(remainder, maxLength);
             parts.add(splitParts[0]);
             remainder = splitParts[1];
@@ -66,6 +66,16 @@ public class StringUtils {
 
         // Convert list to array.
         return parts.toArray(new String[parts.size()]);
+    }
+
+    /**
+     * Causes links to not be clickable in chatrooms.
+     *
+     * @param str The string that may contain links.
+     * @return The string with links that have been suppressed.
+     */
+    public static String suppressLinks(String str) {
+        return str.replaceAll("http://", "").replaceAll("https://", "");
     }
 
 }
