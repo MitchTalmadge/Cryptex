@@ -105,7 +105,7 @@ public class TelegramOutboundRelayService {
 
         // Relay to Discord.
         discordInboundRelayService.notifyEveryone(DISCORD_CHANNEL_ID);
-        discordInboundRelayService.relayMessage(message.getContents(), "Call Made", DISCORD_CHANNEL_ID, true, true);
+        discordInboundRelayService.relayMessage(message.getContents(), "Call Made", DISCORD_CHANNEL_ID, true, false);
     }
 
 }
