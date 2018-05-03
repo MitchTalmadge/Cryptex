@@ -54,6 +54,13 @@ public class TelegramService {
 
     @PostConstruct
     public void init() {
+
+        // Check if telegram is enabled
+        if(API_ID == null || API_HASH == null || PHONE_NUMBER == null) {
+            logService.logError(getClass(), "One or more Telegram environment variables were missing. Disabling Telegram.");
+            return;
+        }
+
         // Try to parse API ID as an integer.
         int apiID;
         try {
