@@ -13,6 +13,7 @@ import com.mitchtalmadge.cryptex.web.api.APIResponse;
 import com.mitchtalmadge.cryptex.web.api.validators.APIRequestValidator;
 import org.apache.catalina.connector.ClientAbortException;
 import org.hibernate.MappingException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -34,23 +35,21 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class WebExceptionHandler extends ResponseEntityExceptionHandler {
 
     private final ResourceLoader resourceLoader;
-    private final SpringProfileService springProfileService;
     private final LogService logService;
 
     @Autowired
     public WebExceptionHandler(ResourceLoader resourceLoader,
-                               SpringProfileService springProfileService,
                                LogService logService) {
         this.resourceLoader = resourceLoader;
-        this.springProfileService = springProfileService;
         this.logService = logService;
     }
 
+    @NotNull
     @Override
-    protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    protected ResponseEntity<Object> handleNoHandlerFoundException(@NotNull NoHandlerFoundException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
         if (ex.getRequestURL().startsWith("/api"))
             // For API calls, send a not found error.
-            return APIResponse.statusNotFound("The resource you have tried to access could not be found.");
+            return APIResponse.statusNotFound("No API endpoint exists at the requested location.");
         else {
             // Load the requested resource.
             Resource resource = this.resourceLoader.getResource("classpath:static" + ex.getRequestURL());
@@ -69,8 +68,9 @@ public class WebExceptionHandler extends ResponseEntityExceptionHandler {
         }
     }
 
+    @NotNull
     @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(@NotNull HttpMessageNotReadableException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
         if (ex.getCause() instanceof InvalidFormatException)
             return handleInvalidFormatException((InvalidFormatException) ex.getCause());
 
@@ -100,8 +100,9 @@ public class WebExceptionHandler extends ResponseEntityExceptionHandler {
         return ex.getApiResponse();
     }
 
+    @NotNull
     @Override
-    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
         return APIResponse.statusUnsupportedMediaType(ex.getContentType());
     }
 
@@ -115,13 +116,15 @@ public class WebExceptionHandler extends ResponseEntityExceptionHandler {
         logService.logError(getClass(), "A client connection was aborted: " + e.getMessage());
     }
 
+    @NotNull
     @Override
-    protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(@NotNull MissingServletRequestParameterException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
         return APIResponse.statusBadRequest("missing_parameter", "The request parameter '" + ex.getParameterName() + "' was not supplied.");
     }
 
+    @NotNull
     @Override
-    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    protected ResponseEntity<Object> handleExceptionInternal(@NotNull Exception ex, Object body, HttpHeaders headers, HttpStatus status, @NotNull WebRequest request) {
         if (ex instanceof HttpRequestMethodNotSupportedException) {
             return APIResponse.statusMethodNotAllowed(((HttpRequestMethodNotSupportedException) ex).getMethod());
         }
