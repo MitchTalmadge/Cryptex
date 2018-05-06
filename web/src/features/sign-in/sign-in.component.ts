@@ -13,4 +13,11 @@ export class SignInComponent implements OnInit {
 
     ngOnInit() {
     }
+
+    /**
+     * Called when the Sign In with Discord button is clicked.
+     */
+    clickSignIn() {
+
+    }
 }
