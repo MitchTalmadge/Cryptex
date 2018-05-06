@@ -39,6 +39,9 @@ public class DiscordInboundRelayService {
      * @param channelId The ID of the Discord channel.
      */
     public void notifyEveryone(String channelId) {
+        if(!discordService.isConnected())
+            return;
+
         TextChannel channel = discordService.getJDA().getTextChannelById(channelId);
         if (channel != null) {
             logService.logInfo(getClass(), "Notifying everyone in channel '" + channel.getName() + "'");
@@ -56,6 +59,8 @@ public class DiscordInboundRelayService {
      * @param pin       Whether to pin the message to the channel.
      */
     public void relayMessage(String message, String title, String channelId, boolean embed, boolean pin) {
+        if(!discordService.isConnected())
+            return;
 
         // Find channel
         TextChannel channel = discordService.getJDA().getTextChannelById(channelId);
@@ -121,6 +126,9 @@ public class DiscordInboundRelayService {
      * @param channelId The ID of the Discord channel.
      */
     public void relayImage(byte[] imageData, String caption, String channelId) {
+        if(!discordService.isConnected())
+            return;
+
         // Find channel
         TextChannel channel = discordService.getJDA().getTextChannelById(channelId);
         if (channel == null) {

@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.mail.*;
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,6 +30,12 @@ public class MailReceiveService {
      * The password for the email account.
      */
     private static final String IMAP_PASSWORD = System.getenv("IMAP_PASSWORD");
+
+    /**
+     * Whether or not this service is configured and able to be used.
+     */
+    private boolean configured;
+
     private LogService logService;
     private Set<MailListener> mailListeners;
 
@@ -38,12 +45,25 @@ public class MailReceiveService {
         this.mailListeners = mailListeners;
     }
 
+    @PostConstruct
+    private void init() {
+        if (IMAP_HOST == null
+                || IMAP_USERNAME == null
+                || IMAP_PASSWORD == null) {
+            configured = false;
+            logService.logError(getClass(), "One or more environment variables were missing. Will not receive mail.");
+        }
+    }
+
     /**
      * Checks for mail every 15 seconds.
      */
     @Async
     @Scheduled(fixedDelay = 15_000)
     protected void checkMail() throws NoSuchProviderException {
+        if (!configured)
+            return;
+
         // IMAP Properties
         Properties properties = new Properties();
         properties.put("mail.imap.host", IMAP_HOST);
