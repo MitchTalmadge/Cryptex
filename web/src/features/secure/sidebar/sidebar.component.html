@@ -4,12 +4,15 @@
     </a>
 
     <div id="c-sidebar-links">
-        <a class="c-sidebar-link"
-           *ngFor="let link of links"
+        <a *ngFor="let link of links"
            [routerLink]="link.route"
            routerLinkActive="active"
            [routerLinkActiveOptions]="{ exact: link.strict }">
             {{link.name}}
+        </a>
+
+        <a (click)="clickSignOut()">
+            Sign Out
         </a>
     </div>
 </div>

@@ -25,4 +25,11 @@ export class SidebarComponent implements OnInit {
     ngOnInit() {
     }
 
+    /**
+     * Called when the sign-out link is clicked.
+     */
+    clickSignOut(): void {
+
+    }
+
 }

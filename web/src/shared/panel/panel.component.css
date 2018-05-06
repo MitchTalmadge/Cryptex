@@ -1,7 +1,8 @@
 .c-panel-wrapper {
     padding: 10px;
 
-    background-color: #444;
+    background-color: #383838;
+    box-shadow: 0 0 10px -2px black;
     border: none;
 }
 
