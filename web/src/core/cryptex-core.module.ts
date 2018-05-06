@@ -1,14 +1,15 @@
 import {ErrorHandler, NgModule, Optional, SkipSelf} from "@angular/core";
-import {CryptexLoaderService} from "./services/loader.service";
+import {CryptexLoaderService} from "./service/loader.service";
 import {CryptexErrorHandler} from "./error-handler";
-import {HttpModule} from "@angular/http";
+import {HttpClientModule} from "@angular/common/http";
+import {CryptexAPIService} from "./service/api/cryptex-a-p-i.service";
 
 /**
  * This module contains the service and other things which should only load once in the application.
  */
 @NgModule({
     imports: [
-        HttpModule,
+        HttpClientModule,
     ],
     declarations: [],
     exports: [],
@@ -17,12 +18,13 @@ import {HttpModule} from "@angular/http";
             provide: ErrorHandler,
             useClass: CryptexErrorHandler
         },
+        CryptexAPIService,
         CryptexLoaderService,
     ],
 })
-export class CoreModule {
+export class CryptexCoreModule {
 
-    constructor(@Optional() @SkipSelf() otherCoreModule: CoreModule) {
+    constructor(@Optional() @SkipSelf() otherCoreModule: CryptexCoreModule) {
         if (otherCoreModule) {
             throw new Error("The Core Module was imported twice. It can only be imported once (in the root module)");
         }

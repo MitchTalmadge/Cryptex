@@ -1,5 +1,5 @@
 import {Component} from "@angular/core";
-import {CryptexLoaderService} from "../../core/services/loader.service";
+import {CryptexLoaderService} from "../../core/service/loader.service";
 
 @Component({
     selector: 'c-loader',
