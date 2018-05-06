@@ -1,7 +1,7 @@
 /**
  * Represents a response from the API.
  */
-export interface CryptexAPIResponse {
+export interface ApiResponse {
 
     /**
      * Whether or not the request succeeded.

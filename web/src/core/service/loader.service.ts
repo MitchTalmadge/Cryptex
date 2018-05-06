@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {ReplaySubject} from "rxjs";
 
 @Injectable()
-export class CryptexLoaderService {
+export class LoaderService {
 
     private loading: ReplaySubject<boolean> = new ReplaySubject<boolean>(1);
 

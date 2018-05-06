@@ -1,6 +1,6 @@
 import {NgModule} from '@angular/core';
 
-import {CryptexPanelBodyDirective, CryptexPanelComponent, CryptexPanelHeaderDirective} from './panel.component';
+import {PanelBodyDirective, PanelComponent, PanelHeaderDirective} from './panel.component';
 import {CommonModule} from "@angular/common";
 
 @NgModule({
@@ -8,16 +8,16 @@ import {CommonModule} from "@angular/common";
         CommonModule
     ],
     exports: [
-        CryptexPanelComponent,
-        CryptexPanelHeaderDirective,
-        CryptexPanelBodyDirective
+        PanelComponent,
+        PanelHeaderDirective,
+        PanelBodyDirective
     ],
     declarations: [
-        CryptexPanelComponent,
-        CryptexPanelHeaderDirective,
-        CryptexPanelBodyDirective
+        PanelComponent,
+        PanelHeaderDirective,
+        PanelBodyDirective
     ],
     providers: [],
 })
-export class CryptexPanelModule {
+export class PanelModule {
 }

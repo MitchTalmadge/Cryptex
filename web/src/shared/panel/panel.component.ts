@@ -6,7 +6,7 @@ import {Component, Directive, Input, OnInit} from '@angular/core';
     styleUrls: ['panel.component.css']
 })
 
-export class CryptexPanelComponent implements OnInit {
+export class PanelComponent implements OnInit {
 
     constructor() {
     }
@@ -18,13 +18,13 @@ export class CryptexPanelComponent implements OnInit {
 @Directive({
     selector: 'c-panel-header'
 })
-export class CryptexPanelHeaderDirective {
+export class PanelHeaderDirective {
 
 }
 
 @Directive({
     selector: 'c-panel-body'
 })
-export class CryptexPanelBodyDirective {
+export class PanelBodyDirective {
 
 }

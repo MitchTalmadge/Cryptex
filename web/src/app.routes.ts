@@ -4,7 +4,11 @@ import {RouterModule, Routes} from "@angular/router";
 const routes: Routes = [
     {
         path: '',
-        loadChildren: './features/home/home.module#CryptexHomeModule'
+        loadChildren: './features/sign-in/sign-in.module#SignInModule'
+    },
+    {
+        path: 'secure',
+        loadChildren: './features/secure/secure.module#SecureModule'
     },
     {
         path: '**',

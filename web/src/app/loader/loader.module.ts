@@ -15,5 +15,5 @@ import {SharedModule} from "../../shared/shared.module";
     ],
     providers: [],
 })
-export class CryptexLoaderModule {
+export class LoaderModule {
 }

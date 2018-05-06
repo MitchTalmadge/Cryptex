@@ -1,15 +1,20 @@
 .c-panel-wrapper {
-    background-color: #333;
-    border: 2px solid #111;
     padding: 10px;
+
+    background-color: #444;
+    border: none;
 }
 
 .c-panel-header, .c-panel-body {
     padding: 10px;
+
+    background-color: transparent;
 }
 
 /* Header */
 
 .c-panel-header {
     margin-bottom: 20px;
+
+    color: #49ceff;
 }

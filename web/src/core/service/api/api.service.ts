@@ -1,11 +1,11 @@
 import {Injectable} from "@angular/core";
 import {Observable} from "rxjs";
 import {HttpClient, HttpErrorResponse, HttpHeaders} from "@angular/common/http";
-import {CryptexAPIResponse} from "./api-response.model";
+import {ApiResponse} from "./api-response.model";
 import {catchError} from "rxjs/operators";
 
 @Injectable()
-export class CryptexAPIService {
+export class ApiService {
 
     private apiUrl: string = "/api/";
     private headers: HttpHeaders = new HttpHeaders({
@@ -18,7 +18,7 @@ export class CryptexAPIService {
     }
 
     public getApiUrlFromEndpoint(endpoint: string): string {
-        return this.apiUrl + CryptexAPIService.removeTrailingSlash(endpoint);
+        return this.apiUrl + ApiService.removeTrailingSlash(endpoint);
     }
 
     private static removeTrailingSlash(path: string): string {
@@ -30,10 +30,10 @@ export class CryptexAPIService {
     /**
      * When an HTTP method results in an error, whether client-sided or server-sided, this method is called.
      * @param {HttpErrorResponse} error The error that was caught.
-     * @param {Observable<CryptexAPIResponse | any>} caught The observable related to the error.
-     * @returns {Observable<CryptexAPIResponse | any>} The un-altered caught parameter.
+     * @param {Observable<ApiResponse | any>} caught The observable related to the error.
+     * @returns {Observable<ApiResponse | any>} The un-altered caught parameter.
      */
-    private static handleError(error: HttpErrorResponse, caught: Observable<CryptexAPIResponse | any>): Observable<CryptexAPIResponse | any> {
+    private static handleError(error: HttpErrorResponse, caught: Observable<ApiResponse | any>): Observable<ApiResponse | any> {
         if (error.error instanceof ErrorEvent) {
             console.error('A client-side connection error occurred while accessing ' + error.url + ': ', error.error.message);
         }
@@ -41,7 +41,7 @@ export class CryptexAPIService {
         return caught;
     }
 
-    public get(path: string, additionalHeaders?: HttpHeaders): Observable<CryptexAPIResponse | any> {
+    public get(path: string, additionalHeaders?: HttpHeaders): Observable<ApiResponse | any> {
         let options;
         if (additionalHeaders) {
             // Copy the current headers.
@@ -55,32 +55,32 @@ export class CryptexAPIService {
         }
         else options = {headers: this.headers};
 
-        return this.http.get<CryptexAPIResponse>(`${this.apiUrl}${CryptexAPIService.removeTrailingSlash(path)}`, options)
-            .pipe(catchError(CryptexAPIService.handleError));
+        return this.http.get<ApiResponse>(`${this.apiUrl}${ApiService.removeTrailingSlash(path)}`, options)
+            .pipe(catchError(ApiService.handleError));
     }
 
-    public post(path: string, data: any): Observable<CryptexAPIResponse | any> {
+    public post(path: string, data: any): Observable<ApiResponse | any> {
         let options = {headers: this.headers};
-        return this.http.post(`${this.apiUrl}${CryptexAPIService.removeTrailingSlash(path)}`, JSON.stringify(data), options)
-            .pipe(catchError(CryptexAPIService.handleError));
+        return this.http.post(`${this.apiUrl}${ApiService.removeTrailingSlash(path)}`, JSON.stringify(data), options)
+            .pipe(catchError(ApiService.handleError));
     }
 
-    public put(path: string, data: any): Observable<CryptexAPIResponse | any> {
+    public put(path: string, data: any): Observable<ApiResponse | any> {
         let options = {headers: this.headers};
-        return this.http.put(`${this.apiUrl}${CryptexAPIService.removeTrailingSlash(path)}`, JSON.stringify(data), options)
-            .pipe(catchError(CryptexAPIService.handleError));
+        return this.http.put(`${this.apiUrl}${ApiService.removeTrailingSlash(path)}`, JSON.stringify(data), options)
+            .pipe(catchError(ApiService.handleError));
     }
 
-    public patch(path: string, data?: any): Observable<CryptexAPIResponse | any> {
+    public patch(path: string, data?: any): Observable<ApiResponse | any> {
         let options = {headers: this.headers};
-        return this.http.patch(`${this.apiUrl}${CryptexAPIService.removeTrailingSlash(path)}`, data != null ? JSON.stringify(data) : undefined, options)
-            .pipe(catchError(CryptexAPIService.handleError));
+        return this.http.patch(`${this.apiUrl}${ApiService.removeTrailingSlash(path)}`, data != null ? JSON.stringify(data) : undefined, options)
+            .pipe(catchError(ApiService.handleError));
     }
 
-    public delete(path: string): Observable<CryptexAPIResponse | any> {
+    public delete(path: string): Observable<ApiResponse | any> {
         let options = {headers: this.headers};
-        return this.http.delete(`${this.apiUrl}${CryptexAPIService.removeTrailingSlash(path)}`, options)
-            .pipe(catchError(CryptexAPIService.handleError));
+        return this.http.delete(`${this.apiUrl}${ApiService.removeTrailingSlash(path)}`, options)
+            .pipe(catchError(ApiService.handleError));
     }
 
 }

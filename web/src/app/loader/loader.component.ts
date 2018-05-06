@@ -1,5 +1,5 @@
 import {Component} from "@angular/core";
-import {CryptexLoaderService} from "../../core/service/loader.service";
+import {LoaderService} from "../../core/service/loader.service";
 
 @Component({
     selector: 'c-loader',
@@ -10,7 +10,7 @@ export class CryptexLoaderComponent {
 
     loading: boolean;
 
-    constructor(loaderService: CryptexLoaderService) {
+    constructor(loaderService: LoaderService) {
         loaderService.isLoading().subscribe(loading => this.loading = loading);
     }
 

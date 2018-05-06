@@ -6,7 +6,7 @@ import {Component, OnInit} from '@angular/core';
     styleUrls: ['sidebar.component.css']
 })
 
-export class CryptexSidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit {
 
     /**
      * The links to display in the sidebar.
@@ -14,7 +14,7 @@ export class CryptexSidebarComponent implements OnInit {
     readonly links: [{name: string, route: string, strict: boolean}] = [
         {
             name: 'Dashboard',
-            route: '/',
+            route: '/secure/dashboard',
             strict: true
         },
     ];

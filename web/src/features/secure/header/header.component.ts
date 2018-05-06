@@ -6,7 +6,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
     styleUrls: ['header.component.css']
 })
 
-export class CryptexHeaderComponent implements OnInit, OnDestroy {
+export class HeaderComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
     }

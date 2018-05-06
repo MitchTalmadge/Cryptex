@@ -2,7 +2,7 @@ import {NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {RouterModule} from "@angular/router";
-import {CryptexPanelModule} from "./panel/panel.module";
+import {PanelModule} from "./panel/panel.module";
 
 /**
  * This module is dedicated to highly re-usable components that are used often in feature components (pages, etc)
@@ -15,7 +15,7 @@ import {CryptexPanelModule} from "./panel/panel.module";
         RouterModule,
 
         // Components
-        CryptexPanelModule
+        PanelModule
     ],
     declarations: [],
     exports: [
@@ -25,7 +25,7 @@ import {CryptexPanelModule} from "./panel/panel.module";
         RouterModule,
 
         // Components
-        CryptexPanelModule
+        PanelModule
     ],
     providers: [],
 })

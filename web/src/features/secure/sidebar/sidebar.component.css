@@ -8,14 +8,14 @@
     z-index: 1;
 
     background-color: #333;
-    border-right: 2px solid #111;
+    box-shadow: 0 0 10px -2px #000;
 }
 
 #c-sidebar-logo {
     height: 70px;
     width: 100%;
     padding: 10px 0;
-    border-bottom: 2px solid #111;
+    background: linear-gradient(141deg, #0fb8ad 0%, #1fc8db 51%, #2cb5e8 75%);
 }
 
 #c-sidebar-links {
@@ -23,15 +23,16 @@
 }
 
 #c-sidebar-links .c-sidebar-link {
-    width: 100%;
+    width: 205px;
     height: 40px;
 
     padding-right: 20px;
     margin-bottom: 10px;
 
     display: block;
-
     color: #bbb;
+    border-radius: 0 5px 5px 0;
+
     font-family: 'Raleway', Helvetica, Arial, Lucida, sans-serif;
     font-size: 18px;
     font-weight: 600;
@@ -39,6 +40,7 @@
     line-height: 40px;
     text-align: right;
     text-decoration: none;
+
     user-select: none;
 }
 

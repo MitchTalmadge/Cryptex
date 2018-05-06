@@ -1,11 +1,11 @@
 import {NgModule} from "@angular/core";
 import {RouterModule, Routes} from "@angular/router";
-import {CryptexHomeComponent} from "./home.component";
+import {DashboardComponent} from "./dashboard.component";
 
 const routes: Routes = [
     {
         path: '',
-        component: CryptexHomeComponent
+        component: DashboardComponent
     }
 ];
 
@@ -18,5 +18,5 @@ const routes: Routes = [
     ],
     providers: []
 })
-export class CryptexHomeRoutesModule {
+export class HomeRoutesModule {
 }
