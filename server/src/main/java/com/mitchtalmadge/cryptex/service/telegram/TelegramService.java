@@ -57,7 +57,7 @@ public class TelegramService {
 
         // Check if telegram is enabled
         if(API_ID == null || API_HASH == null || PHONE_NUMBER == null) {
-            logService.logError(getClass(), "One or more Telegram environment variables were missing. Disabling Telegram.");
+            logService.logError(getClass(), "One or more environment variables were missing. Disabling Telegram.");
             return;
         }
 

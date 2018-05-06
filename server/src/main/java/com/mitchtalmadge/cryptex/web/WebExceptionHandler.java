@@ -1,19 +1,11 @@
-/*
- * Copyright (C) 2016 - 2017 AptiTekk, LLC. (https://AptiTekk.com/) - All Rights Reserved
- * Unauthorized copying of any part of AptiLink, via any medium, is strictly prohibited.
- * Proprietary and confidential.
- */
-
 package com.mitchtalmadge.cryptex.web;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.mitchtalmadge.cryptex.service.LogService;
-import com.mitchtalmadge.cryptex.service.SpringProfileService;
 import com.mitchtalmadge.cryptex.web.api.APIResponse;
 import com.mitchtalmadge.cryptex.web.api.validators.APIRequestValidator;
 import org.apache.catalina.connector.ClientAbortException;
 import org.hibernate.MappingException;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -44,33 +36,13 @@ public class WebExceptionHandler extends ResponseEntityExceptionHandler {
         this.logService = logService;
     }
 
-    @NotNull
     @Override
-    protected ResponseEntity<Object> handleNoHandlerFoundException(@NotNull NoHandlerFoundException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
-        if (ex.getRequestURL().startsWith("/api"))
-            // For API calls, send a not found error.
-            return APIResponse.statusNotFound("No API endpoint exists at the requested location.");
-        else {
-            // Load the requested resource.
-            Resource resource = this.resourceLoader.getResource("classpath:static" + ex.getRequestURL());
-
-            // If it doesn't exist, load index.html
-            if (!resource.exists() || ex.getRequestURL().equals("/")) {
-                resource = this.resourceLoader.getResource("classpath:static/index.html");
-
-                // If index.html doesn't exist, something is wrong internally.
-                if (!resource.exists())
-                    return APIResponse.statusInternalServerError();
-            }
-
-            // Send the resource.
-            return new ResponseEntity<>(resource, HttpStatus.OK);
-        }
+    protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        return APIResponse.statusNotFound("The requested API endpoint could not be found.");
     }
 
-    @NotNull
     @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(@NotNull HttpMessageNotReadableException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         if (ex.getCause() instanceof InvalidFormatException)
             return handleInvalidFormatException((InvalidFormatException) ex.getCause());
 
@@ -100,9 +72,8 @@ public class WebExceptionHandler extends ResponseEntityExceptionHandler {
         return ex.getApiResponse();
     }
 
-    @NotNull
     @Override
-    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         return APIResponse.statusUnsupportedMediaType(ex.getContentType());
     }
 
@@ -116,15 +87,13 @@ public class WebExceptionHandler extends ResponseEntityExceptionHandler {
         logService.logError(getClass(), "A client connection was aborted: " + e.getMessage());
     }
 
-    @NotNull
     @Override
-    protected ResponseEntity<Object> handleMissingServletRequestParameter(@NotNull MissingServletRequestParameterException ex, @NotNull HttpHeaders headers, @NotNull HttpStatus status, @NotNull WebRequest request) {
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         return APIResponse.statusBadRequest("missing_parameter", "The request parameter '" + ex.getParameterName() + "' was not supplied.");
     }
 
-    @NotNull
     @Override
-    protected ResponseEntity<Object> handleExceptionInternal(@NotNull Exception ex, Object body, HttpHeaders headers, HttpStatus status, @NotNull WebRequest request) {
+    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
         if (ex instanceof HttpRequestMethodNotSupportedException) {
             return APIResponse.statusMethodNotAllowed(((HttpRequestMethodNotSupportedException) ex).getMethod());
         }
