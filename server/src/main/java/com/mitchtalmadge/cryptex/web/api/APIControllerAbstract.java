@@ -6,9 +6,14 @@
 
 package com.mitchtalmadge.cryptex.web.api;
 
+import com.mitchtalmadge.cryptex.service.LogService;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class APIControllerAbstract {
+
+    @Autowired
+    protected LogService logService;
 
     protected ModelMapper modelMapper = new ModelMapper();
 

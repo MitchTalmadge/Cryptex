@@ -118,6 +118,9 @@ const config = {
 
     devServer: {
         contentBase: path.join(__dirname, outputPath),
+        proxy: {
+            "/api": "http://localhost:8080/"
+        },
         disableHostCheck: true,
         historyApiFallback: true,
         compress: true,

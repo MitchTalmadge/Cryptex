@@ -21,8 +21,8 @@ export interface ApiResponse {
     message?: string;
 
     /**
-     * The contents of the response, in the case that ok was true.
+     * The content of the response, in the case that ok was true.
      */
-    contents?: any;
+    content?: any;
 
 }

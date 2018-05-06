@@ -3,6 +3,7 @@ import {LoaderService} from "./service/loader.service";
 import {ErrorHandlerProvider} from "./error-handler.provider";
 import {HttpClientModule} from "@angular/common/http";
 import {ApiService} from "./service/api/api.service";
+import {SignInService} from "./service/sign-in.service";
 
 /**
  * This module contains the service and other things which should only load once in the application.
@@ -20,6 +21,7 @@ import {ApiService} from "./service/api/api.service";
         },
         ApiService,
         LoaderService,
+        SignInService,
     ],
 })
 export class CoreModule {

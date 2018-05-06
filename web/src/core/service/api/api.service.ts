@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {Observable} from "rxjs";
-import {HttpClient, HttpErrorResponse, HttpHeaders} from "@angular/common/http";
+import {HttpClient, HttpErrorResponse, HttpEvent, HttpHeaders} from "@angular/common/http";
 import {ApiResponse} from "./api-response.model";
 import {catchError} from "rxjs/operators";
 
@@ -33,7 +33,7 @@ export class ApiService {
      * @param {Observable<ApiResponse | any>} caught The observable related to the error.
      * @returns {Observable<ApiResponse | any>} The un-altered caught parameter.
      */
-    private static handleError(error: HttpErrorResponse, caught: Observable<ApiResponse | any>): Observable<ApiResponse | any> {
+    private static handleError(error: HttpErrorResponse, caught: Observable<any>): Observable<any> {
         if (error.error instanceof ErrorEvent) {
             console.error('A client-side connection error occurred while accessing ' + error.url + ': ', error.error.message);
         }
@@ -41,7 +41,7 @@ export class ApiService {
         return caught;
     }
 
-    public get(path: string, additionalHeaders?: HttpHeaders): Observable<ApiResponse | any> {
+    public get(path: string, additionalHeaders?: HttpHeaders): Promise<ApiResponse> {
         let options;
         if (additionalHeaders) {
             // Copy the current headers.
@@ -56,31 +56,36 @@ export class ApiService {
         else options = {headers: this.headers};
 
         return this.http.get<ApiResponse>(`${this.apiUrl}${ApiService.removeTrailingSlash(path)}`, options)
-            .pipe(catchError(ApiService.handleError));
+            .pipe(catchError(ApiService.handleError))
+            .toPromise();
     }
 
-    public post(path: string, data: any): Observable<ApiResponse | any> {
+    public post(path: string, data: any): Promise<ApiResponse> {
         let options = {headers: this.headers};
         return this.http.post(`${this.apiUrl}${ApiService.removeTrailingSlash(path)}`, JSON.stringify(data), options)
-            .pipe(catchError(ApiService.handleError));
+            .pipe(catchError(ApiService.handleError))
+            .toPromise();
     }
 
-    public put(path: string, data: any): Observable<ApiResponse | any> {
+    public put(path: string, data: any): Promise<ApiResponse> {
         let options = {headers: this.headers};
         return this.http.put(`${this.apiUrl}${ApiService.removeTrailingSlash(path)}`, JSON.stringify(data), options)
-            .pipe(catchError(ApiService.handleError));
+            .pipe(catchError(ApiService.handleError))
+            .toPromise();
     }
 
-    public patch(path: string, data?: any): Observable<ApiResponse | any> {
+    public patch(path: string, data?: any): Promise<ApiResponse> {
         let options = {headers: this.headers};
         return this.http.patch(`${this.apiUrl}${ApiService.removeTrailingSlash(path)}`, data != null ? JSON.stringify(data) : undefined, options)
-            .pipe(catchError(ApiService.handleError));
+            .pipe(catchError(ApiService.handleError))
+            .toPromise();
     }
 
-    public delete(path: string): Observable<ApiResponse | any> {
+    public delete(path: string): Promise<ApiResponse> {
         let options = {headers: this.headers};
         return this.http.delete(`${this.apiUrl}${ApiService.removeTrailingSlash(path)}`, options)
-            .pipe(catchError(ApiService.handleError));
+            .pipe(catchError(ApiService.handleError))
+            .toPromise();
     }
 
 }

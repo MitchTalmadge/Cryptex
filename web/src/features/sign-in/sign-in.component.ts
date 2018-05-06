@@ -1,4 +1,5 @@
 import {Component, OnInit} from '@angular/core';
+import {SignInService} from "../../core/service/sign-in.service";
 
 @Component({
     selector: 'c-sign-in',
@@ -8,7 +9,7 @@ import {Component, OnInit} from '@angular/core';
 
 export class SignInComponent implements OnInit {
 
-    constructor() {
+    constructor(private signInService: SignInService) {
     }
 
     ngOnInit() {
@@ -18,6 +19,7 @@ export class SignInComponent implements OnInit {
      * Called when the Sign In with Discord button is clicked.
      */
     clickSignIn() {
-
+        this.signInService.getDiscordQueryUrl()
+            .then(value => window.location = value.content)
     }
 }
