@@ -19,7 +19,7 @@ export class SignInComponent implements OnInit {
      * Called when the Sign In with Discord button is clicked.
      */
     clickSignIn() {
-        this.signInService.getDiscordQueryUrl()
+        this.signInService.getDiscordAuthorizationUrl()
             .then(value => window.location = value.content)
     }
 }

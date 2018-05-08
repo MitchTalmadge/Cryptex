@@ -38,7 +38,7 @@ export class ApiService {
             console.error('A client-side connection error occurred while accessing ' + error.url + ': ', error.error.message);
         }
 
-        return caught;
+        return Observable.throw(error.error);
     }
 
     public get(path: string, additionalHeaders?: HttpHeaders): Promise<ApiResponse> {
